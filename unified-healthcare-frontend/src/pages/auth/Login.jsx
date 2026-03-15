@@ -48,7 +48,7 @@ export default function Login() {
 
           <div>
             <h1 className="text-5xl font-bold leading-tight mb-6" style={{ color: '#f1f5f9' }}>
-              N's <br/> Unified <br />
+              Unified <br />
               <span style={{ color: '#10b981' }}>Healthcare</span><br />
               System
             </h1>

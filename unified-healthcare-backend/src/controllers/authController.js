@@ -2,12 +2,22 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// Generate Unique ID
+// Generate Unique ID (FIXED)
 const generateUniqueId = async (role) => {
   const prefix = role === "doctor" ? "DOC" : "PAT";
-  const count = await User.countDocuments({ role });
-  const number = String(count + 1).padStart(4, "0");
-  return `${prefix}${number}`;
+
+  const lastUser = await User.findOne({ role })
+    .sort({ createdAt: -1 })
+    .select("uniqueId");
+
+  let nextNumber = 1;
+
+  if (lastUser && lastUser.uniqueId) {
+    const lastNumber = parseInt(lastUser.uniqueId.replace(prefix, ""));
+    nextNumber = lastNumber + 1;
+  }
+
+  return `${prefix}${String(nextNumber).padStart(4, "0")}`;
 };
 
 // Generate JWT
@@ -49,8 +59,10 @@ export const registerPatient = async (req, res) => {
         uniqueId: user.uniqueId,
       },
     });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.log("REGISTER PATIENT ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -81,8 +93,10 @@ export const registerDoctor = async (req, res) => {
     res.status(201).json({
       message: "Doctor registered. Waiting for admin approval.",
     });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.log("REGISTER DOCTOR ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -101,7 +115,6 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // 🔥 BLOCK PENDING DOCTOR
     if (user.role === "doctor" && user.status !== "approved") {
       return res.status(403).json({
         message: "Your account is pending admin approval",
@@ -119,8 +132,10 @@ export const loginUser = async (req, res) => {
         uniqueId: user.uniqueId,
       },
     });
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.log("LOGIN ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -130,6 +145,7 @@ export const getMe = async (req, res) => {
     const user = await User.findById(req.user._id).select("-password");
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.log("GET ME ERROR:", error);
+    res.status(500).json({ message: error.message });
   }
 };
