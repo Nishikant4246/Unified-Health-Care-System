@@ -3,16 +3,21 @@ import { Navigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
 
 function ProtectedRoute({ children, role }) {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+
+  // Wait until AuthContext finishes checking localStorage
+  if (loading) {
+    return null;
+  }
 
   // Not logged in
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   // Role mismatch
   if (role && user.role !== role) {
-    return <Navigate to="/" />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

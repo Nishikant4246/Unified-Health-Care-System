@@ -5,54 +5,74 @@ import api from "../api/axios";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on refresh
+  // Restore session on refresh
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    const loadUser = async () => {
+      try {
+
+        const res = await api.get("/auth/me");
+
+        setUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
+
+      } catch (error) {
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        setUser(null);
+
+      } finally {
+
+        setLoading(false);
+
+      }
+    };
+
+    loadUser();
+
   }, []);
 
-  // Login function
+  // LOGIN
   const login = async (email, password) => {
-    try {
-      const res = await api.post("/auth/login", { email, password });
 
-      const { token, user } = res.data;
+    const res = await api.post("/auth/login", { email, password });
 
-      // Save to localStorage
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+    const { token, user } = res.data;
 
-      setUser(user);
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
 
-      // Redirect based on role
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
-      } else if (user.role === "doctor") {
-        navigate("/doctor/dashboard");
-      } else {
-        navigate("/patient/dashboard");
-      }
+    setUser(user);
 
-    } catch (error) {
-      console.error(error.response?.data?.message || "Login failed");
-      throw error;
-    }
+    if (user.role === "admin") navigate("/admin/dashboard");
+    else if (user.role === "doctor") navigate("/doctor/dashboard");
+    else navigate("/patient/dashboard");
   };
 
-  // Logout function
+  // LOGOUT
   const logout = () => {
+
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
     setUser(null);
+
     navigate("/");
+
   };
 
   return (
