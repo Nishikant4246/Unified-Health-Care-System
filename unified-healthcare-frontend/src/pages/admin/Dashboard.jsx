@@ -162,6 +162,7 @@ export default function AdminDashboard() {
 
         <h2 className="text-lg font-semibold mb-4" style={{ color: "#f1f5f9" }}>
           Quick Actions
+          
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
