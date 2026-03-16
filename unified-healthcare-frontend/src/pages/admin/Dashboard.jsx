@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { AuthContext } from "../../context/AuthContext";
 
 const StatCard = ({ title, value, icon, color, delay, subtitle }) => (
   <div
@@ -11,8 +12,10 @@ const StatCard = ({ title, value, icon, color, delay, subtitle }) => (
       <div className="p-3 rounded-xl" style={{ background: color + "22" }}>
         <span style={{ color }}>{icon}</span>
       </div>
-      <span className="text-xs px-2 py-1 rounded-full font-medium"
-        style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
+      <span
+        className="text-xs px-2 py-1 rounded-full font-medium"
+        style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
+      >
         Live
       </span>
     </div>
@@ -20,52 +23,79 @@ const StatCard = ({ title, value, icon, color, delay, subtitle }) => (
       {value ?? <span className="text-lg" style={{ color: "#94a3b8" }}>—</span>}
     </div>
     <div className="text-sm" style={{ color: "#94a3b8" }}>{title}</div>
-    {subtitle && <div className="text-xs mt-1" style={{ color: "#64748b" }}>{subtitle}</div>}
+    {subtitle && (
+      <div className="text-xs mt-1" style={{ color: "#64748b" }}>{subtitle}</div>
+    )}
   </div>
 );
 
 const quickActions = [
-  { label: "View All Doctors", path: "/admin/doctors", color: "#10b981" },
-  { label: "Pending Approvals", path: "/admin/pending-doctors", color: "#fbbf24" },
-  { label: "View All Patients", path: "/admin/patients", color: "#3b82f6" },
-  { label: "Create Doctor", path: "/admin/doctors", color: "#a855f7" },
+  { label: "View All Doctors",   path: "/admin/doctors",         color: "#10b981" },
+  { label: "Pending Approvals",  path: "/admin/pending-doctors", color: "#fbbf24" },
+  { label: "View All Patients",  path: "/admin/patients",        color: "#3b82f6" },
+  { label: "Create Doctor",      path: "/admin/doctors",         color: "#a855f7" },
 ];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats]               = useState(null);
   const [pendingCount, setPendingCount] = useState(0);
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+
+  const navigate      = useNavigate();
+  const { user }      = useContext(AuthContext); // ← use AuthContext, not localStorage
 
   useEffect(() => {
-    if (user?.role !== "admin") return;
+    // Wait until user is loaded from AuthContext
+    if (!user) return;
+
+    // Guard — only admin can fetch
+    if (user.role !== "admin") return;
 
     const fetchStats = async () => {
       try {
-        const res = await api.get("/admin/stats");
-        setStats(res.data);
-      } catch (err) {
-        if (err.response?.status !== 403) console.error(err);
-      }
-    };
+        setLoading(true);
+        setError(null);
 
-    const fetchPending = async () => {
-      try {
-        const res = await api.get("/admin/pending-doctors");
-        setPendingCount(res.data.length);
-      } catch {
-        // silent
+        const [statsRes, pendingRes] = await Promise.all([
+          api.get("/admin/stats"),
+          api.get("/admin/pending-doctors"),
+        ]);
+
+        setStats(statsRes.data);
+        setPendingCount(pendingRes.data.length);
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+        setError("Failed to load dashboard data. Please refresh.");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStats();
-    fetchPending();
-  }, []);
+  }, [user]); // ← re-runs when user is set
 
-  if (user?.role !== "admin") {
+  // Not admin
+  if (user && user.role !== "admin") {
     return (
       <div className="text-center mt-20 text-lg" style={{ color: "#f1f5f9" }}>
         Access Denied
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-center mt-20">
+        <p className="text-sm mb-4" style={{ color: "#f87171" }}>{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 rounded-lg text-sm"
+          style={{ background: "#10b981", color: "#fff" }}
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -75,7 +105,9 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>Dashboard Overview</h1>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
+          Dashboard Overview
+        </h1>
         <p className="text-sm" style={{ color: "#94a3b8" }}>
           {new Date().toLocaleDateString("en-IN", {
             weekday: "long", year: "numeric", month: "long", day: "numeric",
@@ -87,11 +119,17 @@ export default function AdminDashboard() {
       {pendingCount > 0 && (
         <div
           className="mb-6 p-4 rounded-xl flex items-center justify-between cursor-pointer"
-          style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.25)" }}
+          style={{
+            background: "rgba(251,191,36,0.08)",
+            border: "1px solid rgba(251,191,36,0.25)",
+          }}
           onClick={() => navigate("/admin/pending-doctors")}
         >
           <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#fbbf24" }} />
+            <div
+              className="w-2 h-2 rounded-full animate-pulse"
+              style={{ background: "#fbbf24" }}
+            />
             <span className="text-sm font-medium" style={{ color: "#fbbf24" }}>
               {pendingCount} doctor{pendingCount > 1 ? "s" : ""} waiting for approval
             </span>
@@ -104,7 +142,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard
           title="Total Doctors"
-          value={stats?.totalDoctors}
+          value={loading ? null : stats?.totalDoctors}
           color="#10b981"
           delay="0ms"
           subtitle="Approved & active"
@@ -119,7 +157,7 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Total Patients"
-          value={stats?.totalPatients}
+          value={loading ? null : stats?.totalPatients}
           color="#3b82f6"
           delay="80ms"
           subtitle="Registered users"
@@ -134,7 +172,7 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Medical Records"
-          value={stats?.totalRecords}
+          value={loading ? null : stats?.totalRecords}
           color="#a855f7"
           delay="160ms"
           subtitle="Total across all patients"
@@ -151,7 +189,9 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4" style={{ color: "#f1f5f9" }}>Quick Actions</h2>
+        <h2 className="text-lg font-semibold mb-4" style={{ color: "#f1f5f9" }}>
+          Quick Actions
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <button
@@ -168,8 +208,10 @@ export default function AdminDashboard() {
               onMouseLeave={(e) => (e.currentTarget.style.background = action.color + "18")}
             >
               {action.label === "Pending Approvals" && pendingCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
-                  style={{ background: "#fbbf24", color: "#0f1117" }}>
+                <span
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
+                  style={{ background: "#fbbf24", color: "#0f1117" }}
+                >
                   {pendingCount}
                 </span>
               )}
@@ -180,16 +222,24 @@ export default function AdminDashboard() {
       </div>
 
       {/* System Status */}
-      <div className="p-5 rounded-2xl" style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+      <div
+        className="p-5 rounded-2xl"
+        style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+      >
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#10b981" }} />
-          <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>System Status</span>
+          <div
+            className="w-2 h-2 rounded-full animate-pulse"
+            style={{ background: "#10b981" }}
+          />
+          <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>
+            System Status
+          </span>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Backend API", status: "Operational" },
-            { label: "Database", status: "Connected" },
-            { label: "File Storage", status: "Active" },
+            { label: "Backend API",   status: "Operational" },
+            { label: "Database",      status: "Connected"   },
+            { label: "File Storage",  status: "Active"      },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#10b981" }} />

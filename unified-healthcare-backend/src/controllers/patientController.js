@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import MedicalRecord from "../models/MedicalRecord.js";
 import cloudinary from "../config/cloudinary.js";
 
+// ================= GET MY RECORDS =================
 // Get patient's full medical timeline
 export const getMyRecords = async (req, res) => {
   try {
@@ -18,6 +19,7 @@ export const getMyRecords = async (req, res) => {
   }
 };
 
+// ================= UPLOAD OLD REPORT =================
 // Upload old reports (Imported record)
 export const uploadOldReport = async (req, res) => {
   try {
@@ -55,7 +57,7 @@ export const uploadOldReport = async (req, res) => {
 
     const record = await MedicalRecord.create({
       patient: req.user._id,
-      doctor: null, // ✔ FIXED (no fake doctor)
+      doctor: null,
       diagnosis: "Imported Record",
       medicines: [],
       notes: notes || "Patient uploaded past report",
@@ -77,6 +79,7 @@ export const uploadOldReport = async (req, res) => {
   }
 };
 
+// ================= UPDATE PROFILE =================
 // Update patient profile
 export const updateProfile = async (req, res) => {
   try {
@@ -100,6 +103,7 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+// ================= GET PAYMENT HISTORY =================
 // Get payment history
 export const getPaymentHistory = async (req, res) => {
   try {

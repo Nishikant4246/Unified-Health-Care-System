@@ -5,28 +5,31 @@ import MedicalRecord from "./src/models/MedicalRecord.js";
 
 dotenv.config();
 
-const cleanDB = async () => {
+const cleanDatabase = async () => {
   try {
 
     await mongoose.connect(process.env.MONGO_URI);
     console.log("MongoDB Connected");
 
-    // remove doctors and patients
+    // delete doctors and patients
     await User.deleteMany({ role: { $in: ["doctor", "patient"] } });
 
-    // remove records
+    // delete all medical records
     await MedicalRecord.deleteMany({});
 
-    console.log("Database cleaned (Admin kept)");
+    console.log("Doctors deleted");
+    console.log("Patients deleted");
+    console.log("Medical records deleted");
+    console.log("Admin kept safe");
 
     process.exit();
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Error:", error.message);
     process.exit(1);
 
   }
 };
 
-cleanDB();
+cleanDatabase();
