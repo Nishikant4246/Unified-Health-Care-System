@@ -5,8 +5,13 @@ import {
   getAllDoctors,
   getPendingDoctors,
   approveDoctor,
+  approveDoctorViaNMC,
+  suspendDoctor,
+  verifyDoctorNMC,
   getAllPatients,
   deleteUser,
+  getDoctorProfile,
+  getPatientProfile,
 } from "../controllers/adminController.js";
 import protect from "../middleware/authMiddleware.js";
 import allowRoles from "../middleware/roleMiddleware.js";
@@ -15,12 +20,24 @@ const router = express.Router();
 
 router.use(protect, allowRoles("admin"));
 
-router.get("/stats", getDashboardStats);           // ← Dashboard stats
-router.post("/create-doctor", createDoctor);       // ← Admin creates doctor
-router.get("/doctors", getAllDoctors);             // ← All doctors list
-router.get("/pending-doctors", getPendingDoctors); // ← Pending approvals
-router.put("/approve-doctor/:id", approveDoctor);  // ← Approve doctor
-router.get("/patients", getAllPatients);           // ← All patients list
-router.delete("/user/:id", deleteUser);            // ← Delete any user
+// Dashboard
+router.get("/stats", getDashboardStats);
+
+// Doctor management
+router.post("/create-doctor", createDoctor);
+router.get("/doctors", getAllDoctors);
+router.get("/pending-doctors", getPendingDoctors);
+router.put("/approve-doctor/:id", approveDoctor);
+router.put("/approve-doctor-nmc/:id", approveDoctorViaNMC);
+router.put("/suspend-doctor/:id", suspendDoctor);
+router.get("/verify-nmc", verifyDoctorNMC);
+
+// Patient management
+router.get("/patients", getAllPatients);
+
+// Shared
+router.delete("/user/:id", deleteUser);
+router.get("/doctor/:id", getDoctorProfile);
+router.get("/patient/:id", getPatientProfile);
 
 export default router;

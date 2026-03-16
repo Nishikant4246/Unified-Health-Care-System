@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// Generate Unique ID (FIXED)
+// Generate Unique ID
 const generateUniqueId = async (role) => {
   const prefix = role === "doctor" ? "DOC" : "PAT";
 
@@ -69,11 +69,31 @@ export const registerPatient = async (req, res) => {
 // ================= DOCTOR SELF REGISTER =================
 export const registerDoctor = async (req, res) => {
   try {
-    const { name, email, password, phone, specialization } = req.body;
+    const {
+      name,
+      email,
+      password,
+      phone,
+      gender,
+      specialization,
+      qualification,
+      licenseNumber,
+      experience,
+      hospital,
+      consultationFee,
+      bio,
+      education,
+    } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
+    }
+
+    if (!specialization || !qualification || !licenseNumber || !hospital) {
+      return res.status(400).json({
+        message: "Specialization, qualification, license number and hospital are required",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -86,12 +106,20 @@ export const registerDoctor = async (req, res) => {
       role: "doctor",
       uniqueId,
       phone,
+      gender: gender || "",
       specialization,
+      qualification,
+      licenseNumber,
+      experience: Number(experience) || 0,
+      hospital,
+      consultationFee: Number(consultationFee) || 0,
+      bio: bio || "",
+      education: Array.isArray(education) ? education : [],
       status: "pending",
     });
 
     res.status(201).json({
-      message: "Doctor registered. Waiting for admin approval.",
+      message: "Doctor registration submitted. Waiting for admin approval.",
     });
 
   } catch (error) {
@@ -115,10 +143,21 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    if (user.role === "doctor" && user.status !== "approved") {
-      return res.status(403).json({
-        message: "Your account is pending admin approval",
-      });
+    // ── Doctor status checks ─────────────────────────────
+    if (user.role === "doctor") {
+
+      if (user.status === "pending") {
+        return res.status(403).json({
+          message: "Your account is pending admin approval",
+        });
+      }
+
+      if (user.status === "suspended") {
+        return res.status(403).json({
+          message: `Your account has been suspended. Reason: ${user.suspendedReason || "Contact admin"}`,
+        });
+      }
+
     }
 
     res.status(200).json({

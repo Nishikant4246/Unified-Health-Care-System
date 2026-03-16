@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import MedicalRecord from "../models/MedicalRecord.js";
 
-// Generate Unique ID
+// ─── Utility: Generate Unique ID ─────────────────────────────
 const generateUniqueId = async (role) => {
   const prefix = role === "doctor" ? "DOC" : "PAT";
   const count = await User.countDocuments({ role });
@@ -17,15 +17,18 @@ export const getDashboardStats = async (req, res) => {
       role: "doctor",
       status: "approved",
     });
-
     const totalPatients = await User.countDocuments({ role: "patient" });
-
     const totalRecords = await MedicalRecord.countDocuments();
+    const pendingDoctors = await User.countDocuments({
+      role: "doctor",
+      status: "pending",
+    });
 
     res.status(200).json({
       totalDoctors,
       totalPatients,
       totalRecords,
+      pendingDoctors,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -35,7 +38,11 @@ export const getDashboardStats = async (req, res) => {
 // ================= CREATE DOCTOR (ADMIN DIRECT) =================
 export const createDoctor = async (req, res) => {
   try {
-    const { name, email, password, phone, specialization } = req.body;
+    const {
+      name, email, password, phone, gender,
+      specialization, qualification, licenseNumber,
+      experience, hospital, consultationFee, bio, education,
+    } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -52,8 +59,19 @@ export const createDoctor = async (req, res) => {
       role: "doctor",
       uniqueId,
       phone,
-      specialization,
-      status: "approved", // admin created = auto approved
+      gender: gender || "",
+      specialization: specialization || "",
+      qualification: qualification || "",
+      licenseNumber: licenseNumber || "",
+      experience: Number(experience) || 0,
+      hospital: hospital || "",
+      consultationFee: Number(consultationFee) || 0,
+      bio: bio || "",
+      education: Array.isArray(education) ? education : [],
+      status: "approved",
+      verificationMethod: "admin",
+      adminVerifiedBy: req.user._id,
+      verifiedAt: new Date(),
     });
 
     res.status(201).json({
@@ -76,7 +94,6 @@ export const createDoctor = async (req, res) => {
 export const getAllDoctors = async (req, res) => {
   try {
     const doctors = await User.find({ role: "doctor" }).select("-password");
-
     res.status(200).json(doctors);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -90,27 +107,118 @@ export const getPendingDoctors = async (req, res) => {
       role: "doctor",
       status: "pending",
     }).select("-password");
-
     res.status(200).json(doctors);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-// ================= APPROVE DOCTOR =================
+// ================= APPROVE DOCTOR (ADMIN MANUAL) =================
 export const approveDoctor = async (req, res) => {
   try {
     const doctor = await User.findById(req.params.id);
-
     if (!doctor || doctor.role !== "doctor") {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
     doctor.status = "approved";
+    doctor.verificationMethod = "admin";
+    doctor.adminVerifiedBy = req.user._id;
+    doctor.verifiedAt = new Date();
+    doctor.suspendedReason = "";
     await doctor.save();
 
+    res.status(200).json({ message: "Doctor approved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= APPROVE DOCTOR VIA NMC =================
+export const approveDoctorViaNMC = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.params.id);
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const { nmcData } = req.body;
+
+    doctor.status = "approved";
+    doctor.verificationMethod = "nmc";
+    doctor.nmcVerified = true;
+    doctor.nmcData = {
+      doctorName: nmcData.doctorName || "",
+      registrationNo: nmcData.registrationNo || "",
+      stateMedicalCouncil: nmcData.stateMedicalCouncil || "",
+      qualification: nmcData.qualification || "",
+      checkedAt: new Date(),
+    };
+    doctor.verifiedAt = new Date();
+    doctor.suspendedReason = "";
+    await doctor.save();
+
+    res.status(200).json({ message: "Doctor approved via NMC verification" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= SUSPEND DOCTOR =================
+export const suspendDoctor = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.params.id);
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const { reason } = req.body;
+
+    doctor.status = "suspended";
+    doctor.suspendedReason = reason || "Suspended by admin";
+    await doctor.save();
+
+    res.status(200).json({ message: "Doctor suspended successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= NMC CHECK =================
+export const verifyDoctorNMC = async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    if (!name || name.trim().length < 3) {
+      return res.status(400).json({ message: "Doctor name required" });
+    }
+
+    let results = [];
+    let reachable = true;
+
+    try {
+      const response = await fetch(
+        `https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getDoctorOrHospitalByName&doctor=${encodeURIComponent(name.trim())}&pageNo=0&pageSize=10`,
+        {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(8000),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        results = data?.content || [];
+      } else {
+        reachable = false;
+      }
+    } catch {
+      reachable = false;
+    }
+
     res.status(200).json({
-      message: "Doctor approved successfully",
+      found: results.length > 0,
+      reachable,
+      results,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -121,7 +229,6 @@ export const approveDoctor = async (req, res) => {
 export const getAllPatients = async (req, res) => {
   try {
     const patients = await User.find({ role: "patient" }).select("-password");
-
     res.status(200).json(patients);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -132,18 +239,65 @@ export const getAllPatients = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-
     if (user.role === "admin") {
       return res.status(403).json({ message: "Cannot delete admin" });
     }
-
     await User.findByIdAndDelete(req.params.id);
-
     res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= GET DOCTOR PROFILE =================
+export const getDoctorProfile = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.params.id)
+      .select("-password")
+      .populate("adminVerifiedBy", "name");
+
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const totalRecords = await MedicalRecord.countDocuments({
+      doctor: req.params.id,
+    });
+
+    const recentPatients = await MedicalRecord.find({ doctor: req.params.id })
+      .populate("patient", "name uniqueId phone")
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("diagnosis visitDate patient");
+
+    res.status(200).json({ doctor, totalRecords, recentPatients });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= GET PATIENT PROFILE =================
+export const getPatientProfile = async (req, res) => {
+  try {
+    const patient = await User.findById(req.params.id).select("-password");
+
+    if (!patient || patient.role !== "patient") {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const records = await MedicalRecord.find({ patient: req.params.id })
+      .populate("doctor", "name uniqueId specialization")
+      .sort({ visitDate: -1 })
+      .select("diagnosis medicines notes visitDate paymentAmount doctor");
+
+    res.status(200).json({
+      patient,
+      totalRecords: records.length,
+      records,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
