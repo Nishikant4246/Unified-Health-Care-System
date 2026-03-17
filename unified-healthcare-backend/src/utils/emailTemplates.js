@@ -48,7 +48,6 @@ const wrap = (accentColor, iconEmoji, title, subtitle, body) => `
           <tr>
             <td style="background:linear-gradient(160deg,${NAVY} 0%,${NAVY_MID} 100%);
                        padding:40px 48px 36px;text-align:center;">
-              <!-- Logo / Brand -->
               <div style="margin-bottom:20px;">
                 <span style="display:inline-block;background:rgba(201,168,76,0.15);
                              border:1px solid rgba(201,168,76,0.4);
@@ -85,7 +84,7 @@ const wrap = (accentColor, iconEmoji, title, subtitle, body) => `
             </td>
           </tr>
 
-          <!-- Footer gold line -->
+          <!-- Footer -->
           <tr>
             <td style="background:${BG_SOFT};border-top:1px solid ${BORDER};
                        padding:20px 48px;text-align:center;">
@@ -159,11 +158,11 @@ const dataTable = (rows) => `
 // ─── Info / Alert Box ──────────────────────────────────────────
 const infoBox = (text, type = "gold") => {
   const styles = {
-    gold:    { bg: "#FEF9EC", border: GOLD,      text: "#7A5C1E" },
-    green:   { bg: "#F0FDF4", border: "#16A34A", text: "#14532D" },
-    red:     { bg: "#FEF2F2", border: "#DC2626", text: "#7F1D1D" },
-    blue:    { bg: "#EFF6FF", border: "#1D4ED8", text: "#1E3A5F" },
-    teal:    { bg: "#F0FDFA", border: "#0F766E", text: "#134E4A" },
+    gold:  { bg: "#FEF9EC", border: GOLD,      text: "#7A5C1E" },
+    green: { bg: "#F0FDF4", border: "#16A34A", text: "#14532D" },
+    red:   { bg: "#FEF2F2", border: "#DC2626", text: "#7F1D1D" },
+    blue:  { bg: "#EFF6FF", border: "#1D4ED8", text: "#1E3A5F" },
+    teal:  { bg: "#F0FDFA", border: "#0F766E", text: "#134E4A" },
   };
   const s = styles[type] || styles.gold;
   return `
@@ -192,6 +191,7 @@ const greeting = (name, message) => `
   ${message}
 </p>`;
 
+
 // ══════════════════════════════════════════════════════════════
 // 1. Patient Welcome
 // ══════════════════════════════════════════════════════════════
@@ -206,20 +206,17 @@ export const patientWelcomeEmail = (patient) => ({
       `<strong>${patient.name}</strong>`,
       "Your patient account has been <strong>successfully created</strong>. You now have full access to your health portal — view your medical timeline, track payments, and upload past reports."
     )}
-
     ${dataTable([
-      ["Patient ID",  patient.uniqueId,   GOLD_DARK],
-      ["Full Name",   patient.name],
-      ["Email",       patient.email],
-      ["Phone",       patient.phone || "—"],
-      ["Account Status", "Active ✓",      "#16A34A"],
+      ["Patient ID",     patient.uniqueId, GOLD_DARK],
+      ["Full Name",      patient.name],
+      ["Email",          patient.email],
+      ["Phone",          patient.phone || "—"],
+      ["Account Status", "Active ✓",       "#16A34A"],
     ])}
-
     ${infoBox(
       "💡 <strong>Getting Started:</strong> Log in to explore your Medical Timeline, upload older reports, and view your complete payment history.",
       "gold"
     )}
-
     ${ctaBtn("Access Your Portal")}
     `
   ),
@@ -239,21 +236,18 @@ export const doctorWelcomeEmail = (doctor) => ({
       `<strong>Dr. ${doctor.name}</strong>`,
       "Thank you for registering on UHCS. Your application is currently <strong>under review</strong> by our admin team. You will receive an email notification once your account is approved."
     )}
-
     ${dataTable([
-      ["Doctor ID",       doctor.uniqueId,            GOLD_DARK],
-      ["Full Name",       `Dr. ${doctor.name}`],
-      ["Email",           doctor.email],
-      ["Specialization",  doctor.specialization || "—"],
-      ["Hospital",        doctor.hospital || "—"],
-      ["Status",          "Pending Approval ⏳",       "#D97706"],
+      ["Doctor ID",      doctor.uniqueId,           GOLD_DARK],
+      ["Full Name",      `Dr. ${doctor.name}`],
+      ["Email",          doctor.email],
+      ["Specialization", doctor.specialization || "—"],
+      ["Hospital",       doctor.hospital || "—"],
+      ["Status",         "Pending Approval ⏳",      "#D97706"],
     ])}
-
     ${infoBox(
       "⏳ Approval typically takes <strong>24–48 hours</strong>. We will notify you by email the moment your account is reviewed.",
       "gold"
     )}
-
     <p style="margin:24px 0 0;font-size:13px;color:${TEXT_LIGHT};text-align:center;
                font-family:'Source Sans 3',sans-serif;">
       Questions? Contact the UHCS admin team at
@@ -277,26 +271,19 @@ export const prescriptionEmail = (patient, doctor, record, pdfPath) => ({
       `<strong>${patient.name}</strong>`,
       `Dr. <strong>${doctor.name}</strong> has added a new medical record to your profile. Your prescription is attached to this email as a PDF and is also available in your portal.`
     )}
-
     ${dataTable([
-      ["Patient ID",   patient.uniqueId],
-      ["Doctor",       `Dr. ${doctor.name}${doctor.specialization ? ` · ${doctor.specialization}` : ""}`],
-      ["Diagnosis",    record.diagnosis],
-      ["Medicines",    record.medicines?.join(", ") || "—"],
-      ["Visit Date",   new Date(record.visitDate).toLocaleDateString("en-IN")],
+      ["Patient ID",       patient.uniqueId],
+      ["Doctor",           `Dr. ${doctor.name}${doctor.specialization ? ` · ${doctor.specialization}` : ""}`],
+      ["Diagnosis",        record.diagnosis],
+      ["Medicines",        record.medicines?.join(", ") || "—"],
+      ["Visit Date",       new Date(record.visitDate).toLocaleDateString("en-IN")],
       ["Consultation Fee", `₹${record.paymentAmount || 0}`, GOLD_DARK],
     ])}
-
-    ${record.notes ? infoBox(
-      `📝 <strong>Doctor's Notes:</strong> ${record.notes}`,
-      "teal"
-    ) : ""}
-
+    ${record.notes ? infoBox(`📝 <strong>Doctor's Notes:</strong> ${record.notes}`, "teal") : ""}
     ${infoBox(
       "📎 Your prescription PDF is attached to this email. You can also download it anytime from <strong>UHCS Portal → Medical Timeline</strong>.",
       "gold"
     )}
-
     ${ctaBtn("View in Portal")}
     `
   ),
@@ -319,21 +306,18 @@ export const appointmentRequestEmail = (doctor, patient, appointment) => ({
       `<strong>Dr. ${doctor.name}</strong>`,
       "A patient has requested an appointment with you. Please log in to your portal to <strong>accept or decline</strong> the request."
     )}
-
     ${dataTable([
-      ["Patient Name",  patient.name],
-      ["Patient ID",    patient.uniqueId],
-      ["Phone",         patient.phone || "—"],
-      ["Requested Date",new Date(appointment.date).toLocaleDateString("en-IN")],
-      ["Time Slot",     appointment.timeSlot],
-      ["Reason",        appointment.reason || "Not specified"],
+      ["Patient Name",   patient.name],
+      ["Patient ID",     patient.uniqueId],
+      ["Phone",          patient.phone || "—"],
+      ["Requested Date", new Date(appointment.date).toLocaleDateString("en-IN")],
+      ["Time Slot",      appointment.timeSlot],
+      ["Reason",         appointment.reason || "Not specified"],
     ])}
-
     ${infoBox(
       "⚡ <strong>Quick action needed:</strong> Timely responses help patients plan their care. Please log in to confirm or decline.",
       "blue"
     )}
-
     ${ctaBtn("Respond to Request")}
     `
   ),
@@ -353,21 +337,18 @@ export const appointmentAcceptedEmail = (patient, doctor, appointment) => ({
       `<strong>${patient.name}</strong>`,
       `Great news! Your appointment with <strong>Dr. ${doctor.name}</strong> has been <strong>confirmed</strong>. Please plan to arrive a few minutes early.`
     )}
-
     ${dataTable([
-      ["Doctor",          `Dr. ${doctor.name}`],
-      ["Specialization",  doctor.specialization || "—"],
-      ["Hospital",        doctor.hospital || "—"],
-      ["Date",            new Date(appointment.date).toLocaleDateString("en-IN")],
-      ["Time Slot",       appointment.timeSlot],
-      ["Status",          "Confirmed ✅",  "#16A34A"],
+      ["Doctor",         `Dr. ${doctor.name}`],
+      ["Specialization", doctor.specialization || "—"],
+      ["Hospital",       doctor.hospital || "—"],
+      ["Date",           new Date(appointment.date).toLocaleDateString("en-IN")],
+      ["Time Slot",      appointment.timeSlot],
+      ["Status",         "Confirmed ✅",  "#16A34A"],
     ])}
-
     ${infoBox(
       `📍 <strong>Location:</strong> ${doctor.hospital || "Please contact the doctor's office for exact location details."}`,
       "green"
     )}
-
     ${ctaBtn("View Appointment")}
     `
   ),
@@ -387,20 +368,166 @@ export const appointmentDeclinedEmail = (patient, doctor, appointment) => ({
       `<strong>${patient.name}</strong>`,
       `Unfortunately, your appointment request with <strong>Dr. ${doctor.name}</strong> could not be confirmed at this time.`
     )}
-
     ${dataTable([
-      ["Doctor",          `Dr. ${doctor.name}`],
-      ["Date Requested",  new Date(appointment.date).toLocaleDateString("en-IN")],
-      ["Time Slot",       appointment.timeSlot],
-      ["Reason",          appointment.declineReason || "No reason provided"],
+      ["Doctor",         `Dr. ${doctor.name}`],
+      ["Date Requested", new Date(appointment.date).toLocaleDateString("en-IN")],
+      ["Time Slot",      appointment.timeSlot],
+      ["Reason",         appointment.declineReason || "No reason provided"],
     ])}
-
     ${infoBox(
       "🔄 <strong>What's next?</strong> You can book a new appointment with a different time slot or another available doctor directly from your Patient Portal.",
       "red"
     )}
-
     ${ctaBtn("Book Another Appointment")}
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 7. Doctor Created by Admin  →  used in createDoctor()
+// ══════════════════════════════════════════════════════════════
+export const doctorCreatedByAdminEmail = (doctor) => ({
+  subject: "UHCS – Your Doctor Account is Approved",
+  html: wrap(
+    GOLD, "👨‍⚕️",
+    "Account Approved",
+    "Created & approved by UHCS administration",
+    `
+    ${greeting(
+      `<strong>Dr. ${doctor.name}</strong>`,
+      "Your doctor account has been <strong>created and approved</strong> by the UHCS admin. You can log in immediately and start using the system."
+    )}
+    ${dataTable([
+      ["Doctor ID",      doctor.uniqueId,    GOLD_DARK],
+      ["Email",          doctor.email],
+      ["Specialization", doctor.specialization || "—"],
+      ["Status",         "Approved ✓",        "#16A34A"],
+    ])}
+    ${infoBox(
+      "✅ <strong>Admin Verified:</strong> Your account was directly created and approved by the UHCS administration team. No further action is needed.",
+      "green"
+    )}
+    ${ctaBtn("Login to UHCS")}
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 8. Doctor Approved (Manual)  →  used in approveDoctor()
+// ══════════════════════════════════════════════════════════════
+export const doctorApprovedEmail = (doctor) => ({
+  subject: "UHCS – Your Account Has Been Approved",
+  html: wrap(
+    GOLD, "✅",
+    "Account Approved",
+    "Your registration has been verified",
+    `
+    ${greeting(
+      `<strong>Dr. ${doctor.name}</strong>`,
+      "Great news! Your doctor account on UHCS has been <strong>approved</strong>. You can now log in and start using the system."
+    )}
+    ${dataTable([
+      ["Doctor ID",      doctor.uniqueId,  GOLD_DARK],
+      ["Specialization", doctor.specialization || "—"],
+      ["Hospital",       doctor.hospital || "—"],
+      ["Status",         "Approved ✓",      "#16A34A"],
+    ])}
+    ${infoBox(
+      "🎉 <strong>Welcome aboard!</strong> You now have full access to your doctor dashboard — manage appointments, add medical records, and view your patients.",
+      "green"
+    )}
+    ${ctaBtn("Login to UHCS")}
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 9. Doctor Approved via NMC  →  used in approveDoctorViaNMC()
+// ══════════════════════════════════════════════════════════════
+export const doctorApprovedViaNMCEmail = (doctor, nmcData) => ({
+  subject: "UHCS – Your Account Has Been Approved via NMC Verification",
+  html: wrap(
+    GOLD, "🏛️",
+    "Account Approved",
+    "Verified via National Medical Commission",
+    `
+    ${greeting(
+      `<strong>Dr. ${doctor.name}</strong>`,
+      "Your doctor account has been approved following successful <strong>NMC verification</strong>. You can now log in to UHCS."
+    )}
+    ${dataTable([
+      ["Doctor ID",      doctor.uniqueId,                    GOLD_DARK],
+      ["NMC Reg. No.",   nmcData?.registrationNo || "N/A",   GOLD_DARK],
+      ["Council",        nmcData?.stateMedicalCouncil || "—"],
+      ["Qualification",  nmcData?.qualification || "—"],
+      ["Specialization", doctor.specialization || "—"],
+      ["Status",         "Approved ✓",                        "#16A34A"],
+    ])}
+    ${infoBox(
+      "🏛️ <strong>NMC Verified:</strong> Your credentials were successfully validated against the National Medical Commission registry.",
+      "teal"
+    )}
+    ${ctaBtn("Login to UHCS")}
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 10. Doctor Suspended  →  used in suspendDoctor()
+// ══════════════════════════════════════════════════════════════
+export const doctorSuspendedEmail = (doctor) => ({
+  subject: "UHCS – Your Account Has Been Suspended",
+  html: wrap(
+    GOLD, "⚠️",
+    "Account Suspended",
+    "Your access to UHCS has been restricted",
+    `
+    ${greeting(
+      `<strong>Dr. ${doctor.name}</strong>`,
+      "We regret to inform you that your UHCS doctor account has been <strong>suspended</strong> by the administration."
+    )}
+    ${dataTable([
+      ["Doctor ID", doctor.uniqueId],
+      ["Status",    "Suspended",                             "#DC2626"],
+      ["Reason",    doctor.suspendedReason || "Suspended by admin"],
+    ])}
+    ${infoBox(
+      "📩 <strong>Appeal this decision:</strong> If you believe this is a mistake or wish to appeal, please contact the UHCS admin team through the portal.",
+      "red"
+    )}
+    <p style="margin:24px 0 0;font-size:13px;color:${TEXT_LIGHT};text-align:center;
+               font-family:'Source Sans 3',sans-serif;">
+      For queries, visit
+      <a href="${BASE_URL}" style="color:${GOLD_DARK};text-decoration:none;">our portal</a>
+      and contact the admin team.
+    </p>
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 11. Doctor Reinstated  →  used in reinstateDoctor()
+// ══════════════════════════════════════════════════════════════
+export const doctorReinstatedEmail = (doctor) => ({
+  subject: "UHCS – Your Account Has Been Reinstated",
+  html: wrap(
+    GOLD, "✅",
+    "Account Reinstated",
+    "Your full access has been restored",
+    `
+    ${greeting(
+      `<strong>Dr. ${doctor.name}</strong>`,
+      "Your UHCS doctor account has been <strong>reinstated</strong>. You now have full access to the system again."
+    )}
+    ${dataTable([
+      ["Doctor ID", doctor.uniqueId, GOLD_DARK],
+      ["Status",    "Active ✓",       "#16A34A"],
+    ])}
+    ${infoBox(
+      "🎉 <strong>Welcome back!</strong> Your account is fully active. You can log in and resume managing your appointments and patient records.",
+      "green"
+    )}
+    ${ctaBtn("Login to UHCS")}
     `
   ),
 });

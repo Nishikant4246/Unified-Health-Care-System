@@ -141,7 +141,7 @@ export default function Login() {
               </svg>
               <span className="text-xs" style={{ color: "#4b7a62" }}>Cloud Storage · Cloudinary</span>
             </div>
-            <span className="text-xs" style={{ color: "#374151" }}>— Nishikant K</span>
+            <span className="text-xs" style={{ color: "#374151" }}>— Nishikant V Kshirsagar</span>
           </div>
         </div>
       </div>
