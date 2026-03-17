@@ -18,7 +18,8 @@ import DoctorDashboard from "../pages/doctor/Dashboard";
 import SearchPatient from "../pages/doctor/SearchPatient";
 import AddRecord from "../pages/doctor/AddRecord";
 import MyRecords from "../pages/doctor/MyRecords";
-import PatientProfile from "../pages/doctor/PatientProfile"; // ← ADD THIS
+import MyPatients from "../pages/doctor/MyPatients";
+import PatientProfile from "../pages/doctor/PatientProfile";
 
 import PatientDashboard from "../pages/patient/Dashboard";
 import Timeline from "../pages/patient/Timeline";
@@ -36,31 +37,32 @@ export default function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="doctors" element={<AdminDoctors />} />
+        <Route path="dashboard"       element={<AdminDashboard />} />
+        <Route path="doctors"         element={<AdminDoctors />} />
         <Route path="pending-doctors" element={<PendingDoctors />} />
-        <Route path="patients" element={<AdminPatients />} />
+        <Route path="patients"        element={<AdminPatients />} />
       </Route>
 
       {/* Doctor */}
       <Route path="/doctor" element={<ProtectedRoute role="doctor"><DoctorLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<DoctorDashboard />} />
-        <Route path="search-patient" element={<SearchPatient />} />
-        <Route path="add-record" element={<AddRecord />} />
-        <Route path="my-records" element={<MyRecords />} />
-        <Route path="patients/:patientId" element={<PatientProfile />} /> {/* ← ADD THIS */}
+        <Route path="dashboard"           element={<DoctorDashboard />} />
+        <Route path="search-patient"      element={<SearchPatient />} />
+        <Route path="add-record"          element={<AddRecord />} />
+        <Route path="my-records"          element={<MyRecords />} />
+        <Route path="patients"            element={<MyPatients />} />
+        <Route path="patients/:patientId" element={<PatientProfile />} />
       </Route>
 
       {/* Patient */}
       <Route path="/patient" element={<ProtectedRoute role="patient"><PatientLayout /></ProtectedRoute>}>
-        <Route path="dashboard" element={<PatientDashboard />} />
-        <Route path="timeline" element={<Timeline />} />
+        <Route path="dashboard"     element={<PatientDashboard />} />
+        <Route path="timeline"      element={<Timeline />} />
         <Route path="upload-report" element={<UploadReport />} />
-        <Route path="payments" element={<Payments />} />
-        <Route path="profile" element={<Profile />} />
+        <Route path="payments"      element={<Payments />} />
+        <Route path="profile"       element={<Profile />} />
       </Route>
 
-      {/* 404 - catches everything else */}
+      {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
