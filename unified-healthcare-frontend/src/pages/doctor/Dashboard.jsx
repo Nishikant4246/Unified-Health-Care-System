@@ -295,4 +295,4 @@ export default function DoctorDashboard() {
       </motion.div>
     </PageTransition>
   );
-}
+} 
