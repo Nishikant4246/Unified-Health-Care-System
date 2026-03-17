@@ -18,6 +18,7 @@ import DoctorDashboard from "../pages/doctor/Dashboard";
 import SearchPatient from "../pages/doctor/SearchPatient";
 import AddRecord from "../pages/doctor/AddRecord";
 import MyRecords from "../pages/doctor/MyRecords";
+import PatientProfile from "../pages/doctor/PatientProfile"; // ← ADD THIS
 
 import PatientDashboard from "../pages/patient/Dashboard";
 import Timeline from "../pages/patient/Timeline";
@@ -47,6 +48,7 @@ export default function AppRoutes() {
         <Route path="search-patient" element={<SearchPatient />} />
         <Route path="add-record" element={<AddRecord />} />
         <Route path="my-records" element={<MyRecords />} />
+        <Route path="patients/:patientId" element={<PatientProfile />} /> {/* ← ADD THIS */}
       </Route>
 
       {/* Patient */}
