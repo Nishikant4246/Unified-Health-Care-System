@@ -3,25 +3,25 @@ import MedicalRecord from "../models/MedicalRecord.js";
 import cloudinary from "../config/cloudinary.js";
 
 // ================= SEARCH PATIENT =================
-// GET /api/doctor/search-patient?query=PAT0001
+// GET /api/doctor/search-patient?query=...
+// Fixed: now returns ARRAY and searches name OR uniqueId OR email
 export const searchPatient = async (req, res) => {
   try {
     const { query } = req.query;
 
-    const patient = await User.findOne({
+    if (!query) return res.status(200).json([]);
+
+    const patients = await User.find({
       role: "patient",
       $or: [
-        { uniqueId: query },
-        { email: query },
-        { name: { $regex: query, $options: "i" } },
+        { uniqueId: { $regex: query, $options: "i" } },
+        { email:    { $regex: query, $options: "i" } },
+        { name:     { $regex: query, $options: "i" } },
       ],
     }).select("-password");
 
-    if (!patient) {
-      return res.status(404).json({ message: "Patient not found" });
-    }
-
-    res.status(200).json(patient);
+    // Always return array (frontend expects array)
+    res.status(200).json(patients);
   } catch (error) {
     console.log("SEARCH ERROR:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -66,12 +66,11 @@ export const addMedicalRecord = async (req, res) => {
               else resolve(result);
             }
           );
-
           stream.end(file.buffer);
         });
 
         uploadedReports.push({
-          fileUrl: result.secure_url,
+          fileUrl:  result.secure_url,
           fileType: file.mimetype,
           fileName: file.originalname,
         });
@@ -79,15 +78,15 @@ export const addMedicalRecord = async (req, res) => {
     }
 
     const record = await MedicalRecord.create({
-      patient: patientId,
-      doctor: req.user._id,
+      patient:      patientId,
+      doctor:       req.user._id,
       diagnosis,
-      medicines: medicinesArray,
+      medicines:    medicinesArray,
       notes,
-      reports: uploadedReports,
+      reports:      uploadedReports,
       paymentAmount: paymentAmount || 0,
-      visitDate: visitDate || Date.now(),
-      recordType: "system-generated",
+      visitDate:    visitDate || Date.now(),
+      recordType:   "system-generated",
     });
 
     res.status(201).json({
@@ -103,9 +102,11 @@ export const addMedicalRecord = async (req, res) => {
 // GET /api/doctor/my-records
 export const getDoctorRecords = async (req, res) => {
   try {
+    const limit   = parseInt(req.query.limit) || 100;
     const records = await MedicalRecord.find({ doctor: req.user._id })
-      .populate("patient", "name uniqueId email")
-      .sort({ createdAt: -1 });
+      .populate("patient", "name uniqueId email phone")
+      .sort({ createdAt: -1 })
+      .limit(limit);
 
     res.status(200).json(records);
   } catch (error) {
@@ -113,7 +114,7 @@ export const getDoctorRecords = async (req, res) => {
   }
 };
 
-// ================= GET PATIENT RECORDS (by doctor) =================
+// ================= GET PATIENT RECORDS (old endpoint — keep) =================
 // GET /api/doctor/patient-records/:patientId
 export const getPatientRecords = async (req, res) => {
   try {
@@ -124,6 +125,74 @@ export const getPatientRecords = async (req, res) => {
       .sort({ visitDate: -1 });
 
     res.status(200).json(records);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= GET DOCTOR STATS (NEW) =================
+// GET /api/doctor/stats
+export const getDoctorStats = async (req, res) => {
+  try {
+    const doctorId     = req.user._id;
+    const startOfMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1
+    );
+
+    const [totalRecords, thisMonthRecords, patientIds] = await Promise.all([
+      MedicalRecord.countDocuments({ doctor: doctorId }),
+      MedicalRecord.countDocuments({ doctor: doctorId, createdAt: { $gte: startOfMonth } }),
+      MedicalRecord.distinct("patient", { doctor: doctorId }),
+    ]);
+
+    res.status(200).json({
+      totalRecords,
+      thisMonthRecords,
+      totalPatients: patientIds.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= GET PATIENT FULL PROFILE (NEW) =================
+// GET /api/doctor/patient/:patientId
+// Returns patient info + ALL records from ALL doctors (full history)
+export const getPatientProfile = async (req, res) => {
+  try {
+    const patient = await User.findById(req.params.patientId).select("-password");
+
+    if (!patient || patient.role !== "patient") {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    const records = await MedicalRecord.find({ patient: req.params.patientId })
+      .populate("doctor",  "name uniqueId specialization")
+      .populate("patient", "name uniqueId email phone")
+      .sort({ visitDate: -1, createdAt: -1 });
+
+    res.status(200).json({ patient, records });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= GET MY PATIENTS (NEW) =================
+// GET /api/doctor/my-patients
+// Returns distinct patients this doctor has treated
+export const getMyPatients = async (req, res) => {
+  try {
+    const patientIds = await MedicalRecord.distinct("patient", {
+      doctor: req.user._id,
+    });
+
+    const patients = await User.find({ _id: { $in: patientIds } })
+      .select("name email phone uniqueId createdAt")
+      .sort({ name: 1 });
+
+    res.status(200).json(patients);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
