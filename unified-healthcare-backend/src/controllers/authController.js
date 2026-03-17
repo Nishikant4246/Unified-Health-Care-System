@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import sendEmail from "../utils/sendEmail.js";                                    // NEW
+import { patientWelcomeEmail, doctorWelcomeEmail } from "../utils/emailTemplates.js"; // NEW
 
 // Generate Unique ID
 const generateUniqueId = async (role) => {
@@ -47,6 +49,10 @@ export const registerPatient = async (req, res) => {
       phone,
       status: "approved",
     });
+
+    // ── Welcome email (non-blocking) ──────────────────────────── NEW
+    const { subject, html } = patientWelcomeEmail(user);
+    sendEmail({ to: user.email, subject, html }).catch(() => {});
 
     res.status(201).json({
       message: "Patient registered successfully",
@@ -99,7 +105,7 @@ export const registerDoctor = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const uniqueId = await generateUniqueId("doctor");
 
-    await User.create({
+    const doctor = await User.create({                                   // NEW: capture in variable
       name,
       email,
       password: hashedPassword,
@@ -118,6 +124,10 @@ export const registerDoctor = async (req, res) => {
       status: "pending",
     });
 
+    // ── Welcome email — pending notice (non-blocking) ─────────── NEW
+    const { subject, html } = doctorWelcomeEmail(doctor);
+    sendEmail({ to: doctor.email, subject, html }).catch(() => {});
+
     res.status(201).json({
       message: "Doctor registration submitted. Waiting for admin approval.",
     });
@@ -128,7 +138,7 @@ export const registerDoctor = async (req, res) => {
   }
 };
 
-// ================= LOGIN =================
+// ================= LOGIN ================= (unchanged)
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -178,7 +188,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// ================= GET ME =================
+// ================= GET ME ================= (unchanged)
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
