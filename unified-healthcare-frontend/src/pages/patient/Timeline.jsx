@@ -72,7 +72,7 @@ function Lightbox({ src, alt, onClose }) {
 }
 
 function TimelineCard({ record, index }) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded]           = useState(false);
   const [lightboxImage, setLightboxImage] = useState(null);
   const type = typeColors[record.recordType] || typeColors["system-generated"];
 
@@ -105,7 +105,9 @@ function TimelineCard({ record, index }) {
           <div className="w-0.5 flex-1 mt-1" style={{ background: "#2a2d3e", minHeight: "32px" }} />
         </div>
 
-        <div className="flex-1 mb-6 rounded-2xl overflow-hidden" style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+        <div className="flex-1 mb-6 rounded-2xl overflow-hidden"
+          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+
           {/* Header */}
           <div
             className="px-5 py-4 cursor-pointer flex items-center justify-between"
@@ -120,14 +122,18 @@ function TimelineCard({ record, index }) {
               <div>
                 <div className="font-semibold text-sm" style={{ color: "#f1f5f9" }}>{record.diagnosis}</div>
                 <div className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>
-                  {new Date(record.visitDate).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                  {new Date(record.visitDate).toLocaleDateString("en-IN", {
+                    day: "numeric", month: "long", year: "numeric",
+                  })}
                   {record.doctor && <span> · Dr. {record.doctor.name}</span>}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               {record.paymentAmount > 0 && (
-                <span className="text-sm font-semibold" style={{ color: "#f59e0b" }}>₹{record.paymentAmount}</span>
+                <span className="text-sm font-semibold" style={{ color: "#f59e0b" }}>
+                  ₹{record.paymentAmount}
+                </span>
               )}
               <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth={2}>
@@ -155,7 +161,9 @@ function TimelineCard({ record, index }) {
                         {record.doctor.name?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>Dr. {record.doctor.name}</div>
+                        <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>
+                          Dr. {record.doctor.name}
+                        </div>
                         <div className="text-xs" style={{ color: "#94a3b8" }}>
                           {record.doctor.specialization || "General"} · {record.doctor.uniqueId}
                         </div>
@@ -167,10 +175,62 @@ function TimelineCard({ record, index }) {
                     </div>
                   )}
 
+                  {/* ── Prescription PDF — View + Download ── */}
+                  {record.pdfUrl && (
+                    <div className="flex gap-2">
+
+                      {/* View button */}
+                      <button
+                        onClick={() => openPdf(record.pdfUrl)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                        style={{
+                          background: "rgba(124,58,237,0.12)",
+                          color:      "#a855f7",
+                          border:     "1px solid rgba(124,58,237,0.3)",
+                          cursor:     "pointer",
+                        }}
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="9" y1="13" x2="15" y2="13" />
+                          <line x1="9" y1="17" x2="15" y2="17" />
+                        </svg>
+                        View Prescription
+                        <span>↗</span>
+                      </button>
+
+                      {/* Download button */}
+                      <a
+                        href={record.pdfUrl}
+                        download={`prescription-${record._id}.pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                        style={{
+                          background: "rgba(16,185,129,0.12)",
+                          color:      "#10b981",
+                          border:     "1px solid rgba(16,185,129,0.3)",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Download
+                      </a>
+
+                    </div>
+                  )}
+
                   {/* Medicines */}
                   {record.medicines?.length > 0 && (
                     <div>
-                      <div className="text-xs font-semibold uppercase mb-2" style={{ color: "#94a3b8" }}>Prescribed Medicines</div>
+                      <div className="text-xs font-semibold uppercase mb-2" style={{ color: "#94a3b8" }}>
+                        Prescribed Medicines
+                      </div>
                       <div className="flex flex-wrap gap-2">
                         {record.medicines.map((med, i) => (
                           <motion.span key={i}
@@ -188,8 +248,11 @@ function TimelineCard({ record, index }) {
                   {/* Notes */}
                   {record.notes && (
                     <div>
-                      <div className="text-xs font-semibold uppercase mb-2" style={{ color: "#94a3b8" }}>Doctor Notes</div>
-                      <p className="text-sm p-3 rounded-xl leading-relaxed" style={{ background: "#252837", color: "#f1f5f9" }}>
+                      <div className="text-xs font-semibold uppercase mb-2" style={{ color: "#94a3b8" }}>
+                        Doctor Notes
+                      </div>
+                      <p className="text-sm p-3 rounded-xl leading-relaxed"
+                        style={{ background: "#252837", color: "#f1f5f9" }}>
                         {record.notes}
                       </p>
                     </div>
@@ -298,7 +361,9 @@ export default function Timeline() {
           style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
           <div className="text-5xl mb-4">🏥</div>
           <p className="font-semibold mb-1" style={{ color: "#f1f5f9" }}>No records yet</p>
-          <p className="text-sm" style={{ color: "#94a3b8" }}>Your medical history will appear here after doctor visits</p>
+          <p className="text-sm" style={{ color: "#94a3b8" }}>
+            Your medical history will appear here after doctor visits
+          </p>
         </motion.div>
       ) : (
         <div className="relative max-w-2xl">

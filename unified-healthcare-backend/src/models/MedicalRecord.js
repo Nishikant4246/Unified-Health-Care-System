@@ -3,20 +3,19 @@ import mongoose from "mongoose";
 const medicalRecordSchema = new mongoose.Schema(
   {
     patient: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type:     mongoose.Schema.Types.ObjectId,
+      ref:      "User",
       required: true,
     },
 
-    // ✔ doctor is optional now (for imported records)
     doctor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type:    mongoose.Schema.Types.ObjectId,
+      ref:     "User",
       default: null,
     },
 
     diagnosis: {
-      type: String,
+      type:     String,
       required: true,
     },
 
@@ -32,26 +31,32 @@ const medicalRecordSchema = new mongoose.Schema(
 
     reports: [
       {
-        fileUrl: { type: String },
-        fileType: { type: String },
-        fileName: { type: String },
+        fileUrl:    { type: String },
+        fileType:   { type: String },
+        fileName:   { type: String },
         uploadedAt: { type: Date, default: Date.now },
       },
     ],
 
+    // ── Auto-generated prescription PDF URL (Cloudinary raw) ──
+    pdfUrl: {
+      type:    String,
+      default: null,
+    },
+
     paymentAmount: {
-      type: Number,
+      type:    Number,
       default: 0,
     },
 
     visitDate: {
-      type: Date,
+      type:    Date,
       default: Date.now,
     },
 
     recordType: {
-      type: String,
-      enum: ["system-generated", "imported"],
+      type:    String,
+      enum:    ["system-generated", "imported"],
       default: "system-generated",
     },
   },

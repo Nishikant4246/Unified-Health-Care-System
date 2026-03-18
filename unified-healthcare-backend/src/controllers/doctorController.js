@@ -3,6 +3,7 @@ import MedicalRecord from "../models/MedicalRecord.js";
 import cloudinary from "../config/cloudinary.js";
 import sendEmail from "../utils/sendEmail.js";
 import { prescriptionEmail } from "../utils/emailTemplates.js";
+import { generateAndUploadPrescriptionPdf } from "../utils/pdfService.js";
 
 // ================= SEARCH PATIENT =================
 export const searchPatient = async (req, res) => {
@@ -19,7 +20,6 @@ export const searchPatient = async (req, res) => {
     }).select("-password");
     res.status(200).json(patients);
   } catch (error) {
-    console.log("SEARCH ERROR:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
@@ -34,6 +34,7 @@ export const addMedicalRecord = async (req, res) => {
       return res.status(404).json({ message: "Patient not found" });
     }
 
+    // ── Parse medicines ───────────────────────────────────
     let medicinesArray = [];
     if (medicines) {
       if (Array.isArray(medicines)) {
@@ -43,12 +44,17 @@ export const addMedicalRecord = async (req, res) => {
       }
     }
 
+    // ── Upload report files to Cloudinary ─────────────────
     let uploadedReports = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        const isPdf        = file.mimetype === "application/pdf";
+        const isImage      = file.mimetype.startsWith("image/");
+        const resourceType = isPdf ? "raw" : isImage ? "image" : "raw";
+
         const result = await new Promise((resolve, reject) => {
           const stream = cloudinary.uploader.upload_stream(
-            { folder: "uhcs/reports", resource_type: "auto" },
+            { folder: "uhcs/reports", resource_type: resourceType },
             (error, result) => {
               if (error) reject(error);
               else resolve(result);
@@ -56,6 +62,7 @@ export const addMedicalRecord = async (req, res) => {
           );
           stream.end(file.buffer);
         });
+
         uploadedReports.push({
           fileUrl:  result.secure_url,
           fileType: file.mimetype,
@@ -64,6 +71,7 @@ export const addMedicalRecord = async (req, res) => {
       }
     }
 
+    // ── Create record ─────────────────────────────────────
     const record = await MedicalRecord.create({
       patient:       patientId,
       doctor:        req.user._id,
@@ -76,11 +84,25 @@ export const addMedicalRecord = async (req, res) => {
       recordType:    "system-generated",
     });
 
-    // ── Email prescription to patient (non-blocking) ──────────
-    const { subject, html, attachments } = prescriptionEmail(
+    // ── Generate prescription PDF + save pdfUrl ───────────
+    try {
+      const pdfUrl = await generateAndUploadPrescriptionPdf({
+        patient,
+        doctor:  req.user,
+        record,
+      });
+      record.pdfUrl = pdfUrl;
+      await record.save();
+    } catch (pdfErr) {
+      // PDF generation failed — don't block the response
+      console.error("PDF generation error:", pdfErr.message);
+    }
+
+    // ── Email prescription to patient (non-blocking) ──────
+    const { subject, html } = prescriptionEmail(
       patient, req.user, record, null
     );
-    sendEmail({ to: patient.email, subject, html, attachments }).catch(() => {});
+    sendEmail({ to: patient.email, subject, html }).catch(() => {});
 
     res.status(201).json({ message: "Medical record added successfully", record });
   } catch (error) {
@@ -155,7 +177,7 @@ export const getPatientProfile = async (req, res) => {
 export const getMyPatients = async (req, res) => {
   try {
     const patientIds = await MedicalRecord.distinct("patient", { doctor: req.user._id });
-    const patients = await User.find({ _id: { $in: patientIds } })
+    const patients   = await User.find({ _id: { $in: patientIds } })
       .select("name email phone uniqueId createdAt")
       .sort({ name: 1 });
     res.status(200).json(patients);
