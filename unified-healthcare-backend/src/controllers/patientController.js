@@ -6,28 +6,36 @@ import cloudinary from "../config/cloudinary.js";
 const getSignedUrl = (url) => {
   try {
     if (!url) return url;
-
-    // Extract public_id from full Cloudinary URL
-    // e.g. https://res.cloudinary.com/demo/raw/upload/v123/uhcs/imported-reports/file.pdf
     const regex = /\/(?:image|raw|video)\/upload\/(?:v\d+\/)?(.+)$/;
     const match = url.match(regex);
     if (!match) return url;
-
-    const publicIdWithExt = match[1]; // uhcs/imported-reports/file.pdf
-    const ext             = publicIdWithExt.split(".").pop(); // pdf
-    const publicId        = publicIdWithExt.replace(`.${ext}`, ""); // uhcs/imported-reports/file
+    const publicIdWithExt = match[1];
+    const ext             = publicIdWithExt.split(".").pop();
+    const publicId        = publicIdWithExt.replace(`.${ext}`, "");
     const isPdf           = ext === "pdf";
-
     return cloudinary.url(publicId, {
       resource_type: isPdf ? "raw" : "image",
       format:        ext,
       sign_url:      true,
       secure:        true,
-      expires_at:    Math.floor(Date.now() / 1000) + 3600, // 1 hour
+      expires_at:    Math.floor(Date.now() / 1000) + 3600,
     });
   } catch {
     return url;
   }
+};
+
+// ─── Haversine distance (km) between two lat/lng points ───────
+const getDistance = (lat1, lng1, lat2, lng2) => {
+  const R    = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a    =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return parseFloat((R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1));
 };
 
 // ================= GET MY RECORDS =================
@@ -146,5 +154,42 @@ export const getPatientStats = async (req, res) => {
     res.status(200).json({ totalRecords, totalSpent, totalDoctors });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch stats", error: error.message });
+  }
+};
+
+// ================= GET NEARBY DOCTORS =================
+// Returns UHCS registered doctors sorted by distance from patient
+// Frontend also fetches real-world hospitals from OpenStreetMap separately
+export const getNearbyDoctors = async (req, res) => {
+  try {
+    const { lat, lng, radius = 20 } = req.query; // radius in km, default 20km
+
+    if (!lat || !lng) {
+      return res.status(400).json({ message: "lat and lng are required" });
+    }
+
+    const patientLat = parseFloat(lat);
+    const patientLng = parseFloat(lng);
+
+    // Fetch all approved doctors who have location set
+    const doctors = await User.find({
+      role:              "doctor",
+      status:            "approved",
+      "location.lat":    { $ne: null },
+      "location.lng":    { $ne: null },
+    }).select("name specialization hospital consultationFee phone location available uniqueId");
+
+    // Calculate distance for each doctor and filter by radius
+    const nearby = doctors
+      .map((doc) => {
+        const distance = getDistance(patientLat, patientLng, doc.location.lat, doc.location.lng);
+        return { ...doc.toObject(), distance };
+      })
+      .filter((doc) => doc.distance <= parseFloat(radius))
+      .sort((a, b) => a.distance - b.distance); // nearest first
+
+    res.status(200).json(nearby);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch nearby doctors", error: error.message });
   }
 };

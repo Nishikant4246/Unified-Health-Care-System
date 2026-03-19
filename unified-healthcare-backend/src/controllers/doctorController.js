@@ -34,7 +34,6 @@ export const addMedicalRecord = async (req, res) => {
       return res.status(404).json({ message: "Patient not found" });
     }
 
-    // ── Parse medicines ───────────────────────────────────
     let medicinesArray = [];
     if (medicines) {
       if (Array.isArray(medicines)) {
@@ -44,7 +43,6 @@ export const addMedicalRecord = async (req, res) => {
       }
     }
 
-    // ── Upload report files to Cloudinary ─────────────────
     let uploadedReports = [];
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
@@ -71,7 +69,6 @@ export const addMedicalRecord = async (req, res) => {
       }
     }
 
-    // ── Create record ─────────────────────────────────────
     const record = await MedicalRecord.create({
       patient:       patientId,
       doctor:        req.user._id,
@@ -84,24 +81,19 @@ export const addMedicalRecord = async (req, res) => {
       recordType:    "system-generated",
     });
 
-    // ── Generate prescription PDF + save pdfUrl ───────────
     try {
       const pdfUrl = await generateAndUploadPrescriptionPdf({
         patient,
-        doctor:  req.user,
+        doctor: req.user,
         record,
       });
       record.pdfUrl = pdfUrl;
       await record.save();
     } catch (pdfErr) {
-      // PDF generation failed — don't block the response
       console.error("PDF generation error:", pdfErr.message);
     }
 
-    // ── Email prescription to patient (non-blocking) ──────
-    const { subject, html } = prescriptionEmail(
-      patient, req.user, record, null
-    );
+    const { subject, html } = prescriptionEmail(patient, req.user, record, null);
     sendEmail({ to: patient.email, subject, html }).catch(() => {});
 
     res.status(201).json({ message: "Medical record added successfully", record });
@@ -146,11 +138,7 @@ export const getDoctorStats = async (req, res) => {
       MedicalRecord.countDocuments({ doctor: doctorId, createdAt: { $gte: startOfMonth } }),
       MedicalRecord.distinct("patient", { doctor: doctorId }),
     ]);
-    res.status(200).json({
-      totalRecords,
-      thisMonthRecords,
-      totalPatients: patientIds.length,
-    });
+    res.status(200).json({ totalRecords, thisMonthRecords, totalPatients: patientIds.length });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -181,6 +169,47 @@ export const getMyPatients = async (req, res) => {
       .select("name email phone uniqueId createdAt")
       .sort({ name: 1 });
     res.status(200).json(patients);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= UPDATE DOCTOR LOCATION =================
+// Uses free Nominatim API to convert hospital address → lat/lng
+// No API key needed — OpenStreetMap based
+export const updateLocation = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.user._id);
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const address = req.body.address || doctor.hospital || "";
+    if (!address) {
+      return res.status(400).json({ message: "No address provided. Please fill your hospital address in profile first." });
+    }
+
+    // Nominatim free geocoding — no API key needed
+    const url      = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+    const response = await fetch(url, {
+      headers: { "User-Agent": "UHCS-HealthcareApp/1.0" },
+    });
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      return res.status(404).json({
+        message: "Location not found. Try a more specific address (e.g. 'Ruby Hall Clinic, Sassoon Road, Pune').",
+      });
+    }
+
+    doctor.location = {
+      lat:     parseFloat(data[0].lat),
+      lng:     parseFloat(data[0].lon),
+      address: address,
+    };
+    await doctor.save();
+
+    res.status(200).json({ message: "Location updated successfully", location: doctor.location });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

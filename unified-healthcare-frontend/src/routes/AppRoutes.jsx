@@ -26,6 +26,7 @@ import Timeline from "../pages/patient/Timeline";
 import UploadReport from "../pages/patient/UploadReport";
 import Payments from "../pages/patient/Payments";
 import Profile from "../pages/patient/Profile";
+import FindDoctors from "../pages/patient/FindDoctors";
 
 export default function AppRoutes() {
   return (
@@ -60,6 +61,7 @@ export default function AppRoutes() {
         <Route path="upload-report" element={<UploadReport />} />
         <Route path="payments"      element={<Payments />} />
         <Route path="profile"       element={<Profile />} />
+        <Route path="/patient/find-doctors" element={<FindDoctors />} />
       </Route>
 
       {/* 404 */}

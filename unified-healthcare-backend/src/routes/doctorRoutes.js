@@ -7,6 +7,7 @@ import {
   getDoctorStats,
   getPatientProfile,
   getMyPatients,
+  updateLocation,
 } from "../controllers/doctorController.js";
 
 import protect from "../middleware/authMiddleware.js";
@@ -17,13 +18,14 @@ const router = express.Router();
 
 router.use(protect, allowRoles("doctor"));
 
-router.get("/search-patient",           searchPatient);
-router.get("/stats",                    getDoctorStats);
-router.get("/my-records",               getDoctorRecords);
-router.get("/my-patients",              getMyPatients);
-router.get("/patient/:patientId",       getPatientProfile);
-router.get("/patient-records/:patientId", getPatientRecords);  // keep old one too
+router.get("/search-patient",             searchPatient);
+router.get("/stats",                      getDoctorStats);
+router.get("/my-records",                 getDoctorRecords);
+router.get("/my-patients",                getMyPatients);
+router.get("/patient/:patientId",         getPatientProfile);
+router.get("/patient-records/:patientId", getPatientRecords);
 
-router.post("/add-record", upload.array("reports", 5), addMedicalRecord);
+router.post("/add-record",      upload.array("reports", 5), addMedicalRecord);
+router.post("/update-location", updateLocation);   // NEW — Nominatim geocoding
 
 export default router;

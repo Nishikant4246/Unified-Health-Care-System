@@ -5,78 +5,74 @@ import api from "../api/axios";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-
   const navigate = useNavigate();
-
-  const [user, setUser] = useState(null);
+  const [user,    setUser]    = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Restore session on refresh
+  // ── Restore session on refresh ─────────────────────────────
   useEffect(() => {
-
     const token = localStorage.getItem("token");
-
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) { setLoading(false); return; }
 
     const loadUser = async () => {
       try {
-
+        // /auth/me returns FULL user object including hospital, specialization etc.
         const res = await api.get("/auth/me");
-
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
-
-      } catch (error) {
-
+      } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         setUser(null);
-
       } finally {
-
         setLoading(false);
-
       }
     };
 
     loadUser();
-
   }, []);
 
-  // LOGIN
+  // ── LOGIN ──────────────────────────────────────────────────
   const login = async (email, password) => {
-
-    const res = await api.post("/auth/login", { email, password });
-
-    const { token, user } = res.data;
+    const res         = await api.post("/auth/login", { email, password });
+    const { token }   = res.data;
 
     localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
 
-    setUser(user);
+    // After login, fetch FULL user profile (includes hospital, specialization, location etc.)
+    // so that DoctorDashboard and other pages have all fields available immediately
+    const meRes = await api.get("/auth/me");
+    const fullUser = meRes.data;
 
-    if (user.role === "admin") navigate("/admin/dashboard");
-    else if (user.role === "doctor") navigate("/doctor/dashboard");
+    localStorage.setItem("user", JSON.stringify(fullUser));
+    setUser(fullUser);
+
+    if (fullUser.role === "admin")   navigate("/admin/dashboard");
+    else if (fullUser.role === "doctor") navigate("/doctor/dashboard");
     else navigate("/patient/dashboard");
   };
 
-  // LOGOUT
+  // ── LOGOUT ─────────────────────────────────────────────────
   const logout = () => {
-
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     setUser(null);
-
     navigate("/");
+  };
 
+  // ── Update user in context (after profile update / location set) ──
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      setUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+    } catch {
+      // silent fail
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
