@@ -5,6 +5,13 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 
+// ─── Golden Design Tokens ──────────────────────────────────────
+const GOLD       = "#C9A84C";
+const GOLD_LIGHT = "#F0D98C";
+const GOLD_DARK  = "#A07830";
+const NAVY       = "#0D1B2A";
+const NAVY_MID   = "#1A2E45";
+
 const cardVariants = {
   hidden:   { opacity: 0, y: 20 },
   visible: (i) => ({
@@ -14,8 +21,8 @@ const cardVariants = {
 };
 
 export default function PatientDashboard() {
-  const { user }    = useContext(AuthContext);
-  const navigate    = useNavigate();
+  const { user }  = useContext(AuthContext);
+  const navigate  = useNavigate();
   const [stats,   setStats]   = useState(null);
   const [recent,  setRecent]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,11 +45,10 @@ export default function PatientDashboard() {
   );
 
   const actions = [
-    { label: "Medical Timeline",      desc: "Your complete health history",        path: "/patient/timeline",       color: "#a855f7", icon: "🏥" },
-    { label: "Upload Report",         desc: "Import past medical documents",        path: "/patient/upload-report",  color: "#10b981", icon: "📎" },
-    { label: "Payment History",       desc: "View all medical bills",               path: "/patient/payments",       color: "#f59e0b", icon: "💳" },
-    { label: "Find Nearby Doctors",   desc: "Locate UHCS doctors & hospitals near you", path: "/patient/find-doctors", color: "#3b82f6", icon: "🗺️" },
-    { label: "My Profile",            desc: "Update your personal details",         path: "/patient/profile",        color: "#64748b", icon: "👤" },
+    { label: "Medical Timeline", desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "🏥" },
+    { label: "Upload Report",    desc: "Import past medical documents",      path: "/patient/upload-report", color: "#10b981", icon: "📎" },
+    { label: "Payment History",  desc: "View all medical bills",             path: "/patient/payments",      color: "#f59e0b", icon: "💳" },
+    { label: "My Profile",       desc: "Update your personal details",       path: "/patient/profile",       color: "#64748b", icon: "👤" },
   ];
 
   return (
@@ -55,15 +61,12 @@ export default function PatientDashboard() {
         className="mb-6 p-6 rounded-2xl relative overflow-hidden"
         style={{ background: "#1e2130", border: "1px solid rgba(168,85,247,0.25)" }}
       >
-        <div
-          className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)", transform: "translate(30%, -30%)" }}
-        />
+        <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
         <div className="relative z-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0 }} animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
               className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold flex-shrink-0"
               style={{ background: "linear-gradient(135deg, #a855f7, #7c3aed)", color: "white" }}
@@ -115,83 +118,159 @@ export default function PatientDashboard() {
         ))}
       </div>
 
-      {/* ── Find Nearby Doctors — Featured Card ── */}
+      {/* ══════════════════════════════════════════════════════
+          ── GOLDEN Find Nearby Doctors Card ──
+          Same golden theme as email templates
+          ══════════════════════════════════════════════════════ */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
         onClick={() => navigate("/patient/find-doctors")}
-        className="mb-6 p-5 rounded-2xl cursor-pointer relative overflow-hidden"
-        style={{ background: "#1e2130", border: "1px solid rgba(59,130,246,0.35)" }}
-        whileHover={{ scale: 1.01, borderColor: "rgba(59,130,246,0.6)" }}
+        className="mb-6 cursor-pointer relative overflow-hidden rounded-2xl"
+        whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
+        style={{ background: NAVY }}
       >
-        {/* Background glow */}
-        <div className="absolute top-0 right-0 w-40 h-40 pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%)", transform: "translate(20%, -20%)" }} />
+        {/* Gold top bar */}
+        <div style={{
+          height: "4px",
+          background: `linear-gradient(90deg, ${GOLD_DARK}, ${GOLD}, ${GOLD_LIGHT}, ${GOLD}, ${GOLD_DARK})`,
+        }} />
 
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-            style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)" }}>
-            🗺️
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-base" style={{ color: "#f1f5f9" }}>Find Nearby Doctors</span>
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6" }}>
-                NEW
-              </span>
+        {/* Navy header section */}
+        <div className="relative overflow-hidden"
+          style={{ background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_MID} 100%)`, padding: "24px 28px 20px" }}>
+
+          {/* Background glow */}
+          <div className="absolute top-0 right-0 w-48 h-48 pointer-events-none"
+            style={{ background: `radial-gradient(circle, ${GOLD}15 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
+
+          <div className="relative z-10 flex items-center gap-4">
+            {/* Gold icon circle */}
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
+              style={{
+                background: `rgba(201,168,76,0.15)`,
+                border: `1px solid rgba(201,168,76,0.4)`,
+              }}>
+              🗺️
             </div>
-            <p className="text-sm" style={{ color: "#64748b" }}>
-              Locate UHCS registered doctors &amp; real hospitals near you on an interactive map
-            </p>
-            {/* Steps */}
-            <div className="flex items-center gap-3 mt-3 flex-wrap">
-              {[
-                "📍 Share location",
-                "🔍 See nearby doctors",
-                "📋 View details",
-                "🧭 Get directions",
-              ].map((step, i) => (
-                <span key={i} className="text-xs px-2.5 py-1 rounded-full"
-                  style={{ background: "#252837", color: "#94a3b8", border: "1px solid #2a2d3e" }}>
-                  {step}
+
+            <div className="flex-1">
+              {/* Brand label */}
+              <p style={{
+                margin: "0 0 4px",
+                fontSize: "10px",
+                letterSpacing: "3px",
+                color: GOLD,
+                fontWeight: 600,
+                textTransform: "uppercase",
+              }}>
+                Unified Health Care System
+              </p>
+              {/* Title */}
+              <div className="flex items-center gap-2">
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#FFFFFF", letterSpacing: "0.3px" }}>
+                  Find Nearby Doctors
+                </h3>
+                <span style={{
+                  fontSize: "10px", padding: "2px 8px", borderRadius: "20px", fontWeight: 600,
+                  background: `rgba(201,168,76,0.2)`, color: GOLD_LIGHT,
+                  border: `1px solid rgba(201,168,76,0.4)`,
+                }}>
+                  NEW
                 </span>
-              ))}
+              </div>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
+                UHCS registered doctors &amp; real hospitals near you
+              </p>
+            </div>
+
+            {/* Arrow */}
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"
+              stroke={GOLD} strokeWidth={2} className="flex-shrink-0">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Gold divider */}
+        <div style={{
+          height: "2px",
+          background: `linear-gradient(90deg, ${GOLD_DARK}, ${GOLD}, ${GOLD_LIGHT}, ${GOLD}, ${GOLD_DARK})`,
+        }} />
+
+        {/* White body section */}
+        <div style={{ background: "#FAFAF7", padding: "16px 28px 20px" }}>
+          <div className="flex items-center gap-2 flex-wrap">
+            {[
+              { step: "", label: " Click to get Direction" },
+            ].map((s, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <div style={{
+                  width: "20px", height: "20px", borderRadius: "50%",
+                  background: `linear-gradient(135deg, ${GOLD_DARK}, ${GOLD})`,
+                  color: NAVY, fontSize: "10px", fontWeight: 700,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  {s.step}
+                </div>
+                <span style={{ fontSize: "12px", color: "#4A5568", fontWeight: 500 }}>{s.label}</span>
+                {i < 3 && (
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24"
+                    stroke={GOLD} strokeWidth={2} style={{ margin: "0 4px" }}>
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-4 mt-3 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#a855f7" }} />
+              <span style={{ fontSize: "11px", color: "#718096" }}>UHCS Doctors</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3b82f6" }} />
+              <span style={{ fontSize: "11px", color: "#718096" }}>Real Hospitals</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981" }} />
+              <span style={{ fontSize: "11px", color: "#718096" }}>Your Location</span>
             </div>
           </div>
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#3b82f6" strokeWidth={2} className="flex-shrink-0">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
         </div>
+
+        {/* Gold bottom bar */}
+        <div style={{
+          height: "4px",
+          background: `linear-gradient(90deg, ${GOLD_DARK}, ${GOLD}, ${GOLD_LIGHT}, ${GOLD}, ${GOLD_DARK})`,
+        }} />
       </motion.div>
 
       {/* ── Recent Records ── */}
       {!loading && recent.length > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="p-5 rounded-2xl mb-6"
           style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>Recent Visits</span>
-            <button
-              onClick={() => navigate("/patient/timeline")}
+            <button onClick={() => navigate("/patient/timeline")}
               className="text-xs px-3 py-1 rounded-lg"
-              style={{ background: "#a855f718", color: "#a855f7", border: "1px solid #a855f730" }}
-            >
+              style={{ background: "#a855f718", color: "#a855f7", border: "1px solid #a855f730" }}>
               Full Timeline →
             </button>
           </div>
           <div className="space-y-2">
             {recent.map((rec, i) => (
-              <motion.div
-                key={rec._id}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
+              <motion.div key={rec._id}
+                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.35 + i * 0.06 }}
                 className="flex items-center justify-between p-3 rounded-xl"
                 style={{ background: "#252837" }}

@@ -69,7 +69,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex" style={{ background: "#0f1117" }}>
 
-      {/* ── LEFT PANEL (unchanged) ── */}
+      {/* ── LEFT PANEL ── */}
       <div
         className="hidden lg:flex w-1/2 flex-col justify-between p-14 relative overflow-hidden"
         style={{ background: "linear-gradient(160deg, #0f1117 0%, #0d1f14 60%, #0f1117 100%)" }}
@@ -146,7 +146,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* ── RIGHT PANEL (matches screenshot exactly) ── */}
+      {/* ── RIGHT PANEL ── */}
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm animate-fade-in">
 
@@ -160,7 +160,6 @@ export default function Login() {
             <span className="font-bold text-base" style={{ color: "#f1f5f9" }}>UHCS</span>
           </div>
 
-          {/* — SECURE ACCESS label */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-6 h-px" style={{ background: "#10b981" }} />
             <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#10b981" }}>
@@ -168,7 +167,6 @@ export default function Login() {
             </span>
           </div>
 
-          {/* Heading */}
           <h2 className="text-4xl font-black mb-3" style={{ color: "#f1f5f9", lineHeight: 1.15 }}>
             Welcome back
           </h2>
@@ -176,7 +174,6 @@ export default function Login() {
             Sign in to access your unified health records, appointments, and care history.
           </p>
 
-          {/* Error */}
           {error && (
             <div className="mb-5 p-4 rounded-xl flex items-center gap-3"
               style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
@@ -187,8 +184,8 @@ export default function Login() {
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          {/* ── autocomplete="on" tells browser to suggest saved credentials ── */}
+          <form onSubmit={handleSubmit} className="space-y-4 mb-6" autoComplete="on">
 
             {/* Email */}
             <div>
@@ -197,16 +194,14 @@ export default function Login() {
               </label>
               <input
                 type="email"
+                name="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
                 className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all"
-                style={{
-                  background: "#1a1d2e",
-                  border: "1px solid #252837",
-                  color: "#f1f5f9",
-                }}
+                style={{ background: "#1a1d2e", border: "1px solid #252837", color: "#f1f5f9" }}
                 onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                 onBlur={(e)  => (e.target.style.borderColor = "#252837")}
               />
@@ -220,16 +215,14 @@ export default function Login() {
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
                   className="w-full px-4 py-3.5 pr-12 rounded-2xl text-sm outline-none transition-all"
-                  style={{
-                    background: "#1a1d2e",
-                    border: "1px solid #252837",
-                    color: "#f1f5f9",
-                  }}
+                  style={{ background: "#1a1d2e", border: "1px solid #252837", color: "#f1f5f9" }}
                   onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                   onBlur={(e)  => (e.target.style.borderColor = "#252837")}
                 />
@@ -255,17 +248,14 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Sign In button */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 mt-2"
               style={{
                 background: loading ? "#0d9268" : "#10b981",
-                color:   "white",
-                opacity: loading ? 0.85 : 1,
-                cursor:  loading ? "not-allowed" : "pointer",
-                fontSize: "15px",
+                color: "white", opacity: loading ? 0.85 : 1,
+                cursor: loading ? "not-allowed" : "pointer", fontSize: "15px",
               }}
             >
               {loading ? (
@@ -286,29 +276,21 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px" style={{ background: "#1e2130" }} />
             <span className="text-xs" style={{ color: "#64748b" }}>Don't have an account?</span>
             <div className="flex-1 h-px" style={{ background: "#1e2130" }} />
           </div>
 
-          {/* Register options — list style matching screenshot */}
           <div className="space-y-3">
-            {/* New Patient */}
-            <Link
-              to="/register"
+            <Link to="/register"
               className="flex items-center gap-4 p-4 rounded-2xl transition-all"
               style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#10b98150")}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: "rgba(168,85,247,0.1)" }}
-              >
-                🧑‍⚕️
-              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                style={{ background: "rgba(168,85,247,0.1)" }}>🧑‍⚕️</div>
               <div className="flex-1">
                 <div className="text-sm font-bold" style={{ color: "#f1f5f9" }}>New Patient</div>
                 <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>Create your patient account</div>
@@ -318,20 +300,14 @@ export default function Login() {
               </svg>
             </Link>
 
-            {/* Doctor */}
-            <Link
-              to="/register-doctor"
+            <Link to="/register-doctor"
               className="flex items-center gap-4 p-4 rounded-2xl transition-all"
               style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
               onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#3b82f650")}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                style={{ background: "rgba(59,130,246,0.1)" }}
-              >
-                👨‍⚕️
-              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                style={{ background: "rgba(59,130,246,0.1)" }}>👨‍⚕️</div>
               <div className="flex-1">
                 <div className="text-sm font-bold" style={{ color: "#f1f5f9" }}>Doctor / Provider</div>
                 <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>Apply for practitioner access</div>

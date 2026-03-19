@@ -2,7 +2,7 @@ import User from "../models/User.js";
 import MedicalRecord from "../models/MedicalRecord.js";
 import cloudinary from "../config/cloudinary.js";
 
-// ─── Generate signed Cloudinary URL (fixes 401 on PDFs) ───────
+// ─── Generate signed Cloudinary URL ───────────────────────────
 const getSignedUrl = (url) => {
   try {
     if (!url) return url;
@@ -25,7 +25,7 @@ const getSignedUrl = (url) => {
   }
 };
 
-// ─── Haversine distance (km) between two lat/lng points ───────
+// ─── Haversine distance (km) ───────────────────────────────────
 const getDistance = (lat1, lng1, lat2, lng2) => {
   const R    = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -64,13 +64,11 @@ export const getMyRecords = async (req, res) => {
 export const uploadOldReport = async (req, res) => {
   try {
     const { notes, visitDate } = req.body;
-
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "No files uploaded" });
     }
 
     let uploadedReports = [];
-
     for (const file of req.files) {
       const isPdf        = file.mimetype === "application/pdf";
       const isImage      = file.mimetype.startsWith("image/");
@@ -79,10 +77,7 @@ export const uploadOldReport = async (req, res) => {
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: "uhcs/imported-reports", resource_type: resourceType },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
+          (error, result) => { if (error) reject(error); else resolve(result); }
         );
         stream.end(file.buffer);
       });
@@ -118,9 +113,7 @@ export const updateProfile = async (req, res) => {
   try {
     const { name, phone } = req.body;
     const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { name, phone },
-      { new: true, runValidators: true }
+      req.user._id, { name, phone }, { new: true, runValidators: true }
     ).select("-password");
     res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
@@ -132,8 +125,7 @@ export const updateProfile = async (req, res) => {
 export const getPaymentHistory = async (req, res) => {
   try {
     const records = await MedicalRecord.find({
-      patient:       req.user._id,
-      paymentAmount: { $gt: 0 },
+      patient: req.user._id, paymentAmount: { $gt: 0 },
     })
       .populate("doctor", "name specialization uniqueId")
       .select("doctor diagnosis paymentAmount visitDate")
@@ -158,11 +150,10 @@ export const getPatientStats = async (req, res) => {
 };
 
 // ================= GET NEARBY DOCTORS =================
-// Returns UHCS registered doctors sorted by distance from patient
-// Frontend also fetches real-world hospitals from OpenStreetMap separately
+// ── FIX: Query doctors where location.lat exists and is a number ──
 export const getNearbyDoctors = async (req, res) => {
   try {
-    const { lat, lng, radius = 20 } = req.query; // radius in km, default 20km
+    const { lat, lng, radius = 20 } = req.query;
 
     if (!lat || !lng) {
       return res.status(400).json({ message: "lat and lng are required" });
@@ -171,22 +162,23 @@ export const getNearbyDoctors = async (req, res) => {
     const patientLat = parseFloat(lat);
     const patientLng = parseFloat(lng);
 
-    // Fetch all approved doctors who have location set
+    // ── KEY FIX: Use $exists + $type to find doctors with valid location ──
     const doctors = await User.find({
-      role:              "doctor",
-      status:            "approved",
-      "location.lat":    { $ne: null },
-      "location.lng":    { $ne: null },
+      role:   "doctor",
+      status: "approved",
+      "location.lat": { $exists: true, $type: "number" },
+      "location.lng": { $exists: true, $type: "number" },
     }).select("name specialization hospital consultationFee phone location available uniqueId");
 
-    // Calculate distance for each doctor and filter by radius
+    console.log(`Found ${doctors.length} doctors with location set`); // debug
+
     const nearby = doctors
       .map((doc) => {
         const distance = getDistance(patientLat, patientLng, doc.location.lat, doc.location.lng);
         return { ...doc.toObject(), distance };
       })
       .filter((doc) => doc.distance <= parseFloat(radius))
-      .sort((a, b) => a.distance - b.distance); // nearest first
+      .sort((a, b) => a.distance - b.distance);
 
     res.status(200).json(nearby);
   } catch (error) {
