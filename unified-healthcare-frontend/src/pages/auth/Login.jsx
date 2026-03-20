@@ -5,15 +5,15 @@ import nishikantImg from "../../assets/nishikant.jpg";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
-  const [email,        setEmail]        = useState("");
-  const [password,     setPassword]     = useState("");
-  const [error,        setError]        = useState("");
-  const [loading,      setLoading]      = useState(false);
-  const [showPass,     setShowPass]     = useState(false);
-  const [showAbout,    setShowAbout]    = useState(false);
-  const [showContact,  setShowContact]  = useState(false);
-  const [showEmergency,setShowEmergency]= useState(false);
-  const [aboutTab,     setAboutTab]     = useState("uhcs");
+  const [email,         setEmail]         = useState("");
+  const [password,      setPassword]      = useState("");
+  const [error,         setError]         = useState("");
+  const [loading,       setLoading]       = useState(false);
+  const [showPass,      setShowPass]      = useState(false);
+  const [showAbout,     setShowAbout]     = useState(false);
+  const [showContact,   setShowContact]   = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [aboutTab,      setAboutTab]      = useState("uhcs");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,7 +35,7 @@ export default function Login() {
           <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
         </svg>
       ),
-      title: "Universal Patient ID",
+      title: "Universal Patient ID and Doctor ID",
       desc: "Every patient gets a unique ID that works across all clinics",
     },
     {
@@ -80,7 +80,6 @@ export default function Login() {
     padding: "24px",
   };
 
-  /* ── shared close btn style ── */
   const closeBtn = {
     position: "absolute", top: 16, right: 16, zIndex: 10,
     background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
@@ -91,6 +90,65 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex" style={{ background: "#0f1117" }}>
+
+      {/* ══════════════════ EMERGENCY MODAL ══════════════════ */}
+      {showEmergency && (
+        <div style={overlayBg} onClick={() => setShowEmergency(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            width: "100%", maxWidth: 420,
+            background: "#0f1117",
+            border: "1px solid rgba(239,68,68,0.25)",
+            borderRadius: 18, padding: "28px 24px",
+            boxShadow: "0 25px 80px rgba(239,68,68,0.12)",
+            position: "relative",
+          }}>
+            <button onClick={() => setShowEmergency(false)} style={{ ...closeBtn, borderColor: "rgba(239,68,68,0.2)" }}>×</button>
+
+            <div style={{ textAlign: "center", marginBottom: 22 }}>
+              <div style={{
+                width: 52, height: 52, borderRadius: 14, margin: "0 auto 12px",
+                background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
+              }}>🚨</div>
+              <div style={{ color: "#f87171", fontWeight: 800, fontSize: 18 }}>Emergency Help</div>
+              <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Call immediately in case of emergency</div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { icon: "🏥", label: "National Emergency", number: "112", color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
+                { icon: "🚑", label: "Ambulance",          number: "108", color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
+                { icon: "🩺", label: "Medical Helpline",   number: "104", color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
+                { icon: "👮", label: "Police",             number: "100", color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
+                { icon: "🔥", label: "Fire Brigade",       number: "101", color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
+              ].map(e => (
+                <a key={e.number} href={`tel:${e.number}`} style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "13px 16px", borderRadius: 12, textDecoration: "none",
+                  background: e.bg, border: `1px solid ${e.border}`,
+                  transition: "opacity 0.2s",
+                }}
+                  onMouseEnter={el => el.currentTarget.style.opacity = "0.85"}
+                  onMouseLeave={el => el.currentTarget.style.opacity = "1"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 20 }}>{e.icon}</span>
+                    <div>
+                      <div style={{ color: "#e2e8f0", fontWeight: 600, fontSize: 13 }}>{e.label}</div>
+                      <div style={{ color: "#64748b", fontSize: 11, marginTop: 1 }}>Tap to call</div>
+                    </div>
+                  </div>
+                  <div style={{ color: e.color, fontWeight: 800, fontSize: 20, fontFamily: "monospace" }}>{e.number}</div>
+                </a>
+              ))}
+            </div>
+
+            <p style={{ color: "#374151", fontSize: 11, textAlign: "center", marginTop: 16, marginBottom: 0 }}>
+              Stay calm · Call the nearest number · Help is on the way
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════ ABOUT MODAL ══════════════════ */}
       {showAbout && (
@@ -111,8 +169,8 @@ export default function Login() {
               borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}>
               {[
-                { key: "uhcs", label: "🏥  About UHCS"  },
-                { key: "dev",  label: "👨‍💻  Developer"   },
+                { key: "uhcs", label: "🏥  About UHCS" },
+                { key: "dev",  label: "👨‍💻  Developer"  },
               ].map(t => (
                 <button key={t.key} onClick={() => setAboutTab(t.key)} style={{
                   padding: "10px 22px", borderRadius: "10px 10px 0 0",
@@ -128,8 +186,6 @@ export default function Login() {
             {/* ── UHCS TAB ── */}
             {aboutTab === "uhcs" && (
               <div style={{ padding: "28px 28px 36px" }}>
-
-                {/* hero */}
                 <div style={{
                   background: "linear-gradient(135deg,#0d1f14,#0a1a10)",
                   border: "1px solid rgba(16,185,129,0.15)",
@@ -161,9 +217,8 @@ export default function Login() {
                   </p>
                 </div>
 
-                {/* why cards — 2 col grid, no stats bar */}
                 <h3 style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 700, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>Why UHCS?</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   {[
                     { icon: "🔗", h: "Cross-Clinic History",  b: "Unifies all patient records across every clinic they've visited." },
                     { icon: "🩺", h: "Better Diagnosis",      b: "Doctors get full context, reducing errors and improving accuracy." },
@@ -183,52 +238,13 @@ export default function Login() {
                     </div>
                   ))}
                 </div>
-
-                {/* emergency + find nearby inside UHCS tab */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <button onClick={() => { setShowAbout(false); setShowEmergency(true); }} style={{
-                    padding: "14px 16px", borderRadius: 12, cursor: "pointer",
-                    background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.2)",
-                    display: "flex", alignItems: "center", gap: 10, textAlign: "left",
-                    transition: "border-color 0.2s",
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(239,68,68,0.45)"}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"}
-                  >
-                    <span style={{ fontSize: 22 }}>🚨</span>
-                    <div>
-                      <div style={{ color: "#f87171", fontWeight: 700, fontSize: 13 }}>Emergency Help</div>
-                      <div style={{ color: "#64748b", fontSize: 11, marginTop: 2 }}>Quick access to emergency contacts</div>
-                    </div>
-                  </button>
-
-                  <a
-                    href="https://www.google.com/maps/search/hospitals+near+me"
-                    target="_blank" rel="noreferrer"
-                    style={{
-                      padding: "14px 16px", borderRadius: 12, textDecoration: "none",
-                      background: "rgba(59,130,246,0.07)", border: "1px solid rgba(59,130,246,0.2)",
-                      display: "flex", alignItems: "center", gap: 10,
-                      transition: "border-color 0.2s",
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(59,130,246,0.45)"}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(59,130,246,0.2)"}
-                  >
-                    <span style={{ fontSize: 22 }}>📍</span>
-                    <div>
-                      <div style={{ color: "#60a5fa", fontWeight: 700, fontSize: 13 }}>Find Nearby Doctors</div>
-                      <div style={{ color: "#64748b", fontSize: 11, marginTop: 2 }}>Locate clinics & hospitals near you</div>
-                    </div>
-                  </a>
-                </div>
+                {/* ── Find Nearby Doctors REMOVED from here ── */}
               </div>
             )}
 
             {/* ── DEVELOPER TAB ── */}
             {aboutTab === "dev" && (
               <div style={{ padding: "28px 28px 36px" }}>
-
-                {/* golden card only */}
                 <div style={{
                   background: "linear-gradient(135deg,#1a1400 0%,#241c00 45%,#1e1600 100%)",
                   border: "1px solid rgba(212,160,23,0.35)",
@@ -236,11 +252,9 @@ export default function Login() {
                   position: "relative", overflow: "hidden",
                   boxShadow: "0 8px 40px rgba(212,160,23,0.08)",
                 }}>
-                  {/* shimmer blobs */}
                   <div style={{ position: "absolute", top: -70, right: -70, width: 240, height: 240, borderRadius: "50%", background: "radial-gradient(circle,rgba(246,201,14,0.07) 0%,transparent 70%)", pointerEvents: "none" }} />
                   <div style={{ position: "absolute", bottom: -50, left: -50, width: 180, height: 180, borderRadius: "50%", background: "radial-gradient(circle,rgba(246,201,14,0.04) 0%,transparent 70%)", pointerEvents: "none" }} />
 
-                  {/* avatar + name */}
                   <div style={{ display: "flex", gap: 22, alignItems: "flex-start", position: "relative", zIndex: 1 }}>
                     <div style={{
                       width: 88, height: 88, borderRadius: 18, flexShrink: 0,
@@ -267,16 +281,13 @@ export default function Login() {
                     </div>
                   </div>
 
-                  {/* bio */}
                   <p style={{ color: "#a8a29e", fontSize: 13, lineHeight: 1.8, marginTop: 20, position: "relative", zIndex: 1 }}>
-                    I’m Nishikant Vitthal Kshirsagar, a passionate Software Developer who enjoys building clean, user-friendly web applications that solve real problems. I like taking ideas from concept to fully working products and continuously improving my skills through hands-on development. One of my key projects is the Unified Healthcare System (UHCS), which I designed and developed end-to-end to streamline interactions between patients, doctors, and administrators through an intuitive and efficient platform.
+                    I'm Nishikant Vitthal Kshirsagar, a passionate Software Developer who enjoys building clean, user-friendly web applications that solve real problems. I like taking ideas from concept to fully working products and continuously improving my skills through hands-on development. One of my key projects is the Unified Healthcare System (UHCS), which I designed and developed end-to-end to streamline interactions between patients, doctors, and administrators through an intuitive and efficient platform.
                   </p>
 
-                  {/* links */}
                   <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", position: "relative", zIndex: 1 }}>
                     {[
                       { label: "🌐 Portfolio", href: "https://nishikant-dev.vercel.app/" },
-                      { label: "💻 GitHub",    href: "https://github.com/nishikant23"     },
                       { label: "✉️ Email",     href: "mailto:nishikantkshirsagar22@gmail.com" },
                     ].map(l => (
                       <a key={l.label} href={l.href} target="_blank" rel="noreferrer" style={{
@@ -324,132 +335,34 @@ export default function Login() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <a href="mailto:kshirsagarnishikant45@gmail.com" style={{
-                display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 16px", borderRadius: 12, textDecoration: "none",
-                background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
-                transition: "border-color 0.2s",
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.4)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.15)"}
-              >
-                <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2}>
-                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>Email</div>
-                  <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, marginTop: 2 }}>kshirsagarnishikant45@gmail.com</div>
-                </div>
-              </a>
-
-              <a href="mailto:nishikantkshirsagar22@gmail.com" style={{
-                display: "flex", alignItems: "center", gap: 14,
-                padding: "14px 16px", borderRadius: 12, textDecoration: "none",
-                background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
-                transition: "border-color 0.2s",
-              }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.4)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.15)"}
-              >
-                <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2}>
-                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>Alt Email</div>
-                  <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, marginTop: 2 }}>nishikantkshirsagar22@gmail.com</div>
-                </div>
-              </a>
+              {[
+                { label: "Email",     email: "kshirsagarnishikant45@gmail.com"  },
+                { label: "Alt Email", email: "nishikantkshirsagar22@gmail.com"  },
+              ].map(c => (
+                <a key={c.label} href={`mailto:${c.email}`} style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  padding: "14px 16px", borderRadius: 12, textDecoration: "none",
+                  background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)",
+                  transition: "border-color 0.2s",
+                }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.4)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(16,185,129,0.15)"}
+                >
+                  <div style={{ width: 38, height: 38, borderRadius: 10, flexShrink: 0, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2}>
+                      <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.label}</div>
+                    <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{c.email}</div>
+                  </div>
+                </a>
+              ))}
             </div>
 
             <p style={{ color: "#374151", fontSize: 11, textAlign: "center", marginTop: 18, marginBottom: 0 }}>
               We typically respond within 12 hours
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ══════════════════ EMERGENCY MODAL ══════════════════ */}
-      {showEmergency && (
-        <div style={overlayBg} onClick={() => setShowEmergency(false)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            width: "100%", maxWidth: 420,
-            background: "#0f1117",
-            border: "1px solid rgba(239,68,68,0.25)",
-            borderRadius: 18, padding: "28px 24px",
-            boxShadow: "0 25px 80px rgba(239,68,68,0.12)",
-            position: "relative",
-          }}>
-            <button onClick={() => setShowEmergency(false)} style={{ ...closeBtn, borderColor: "rgba(239,68,68,0.2)" }}>×</button>
-
-            {/* header */}
-            <div style={{ textAlign: "center", marginBottom: 22 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 14, margin: "0 auto 12px",
-                background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
-              }}>🚨</div>
-              <div style={{ color: "#f87171", fontWeight: 800, fontSize: 18 }}>Emergency Help</div>
-              <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Call immediately in case of emergency</div>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {[
-                { icon: "🏥", label: "National Emergency",     number: "112",  color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
-                { icon: "🚑", label: "Ambulance",              number: "108",  color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
-                { icon: "🩺", label: "Medical Helpline",       number: "104",  color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
-                { icon: "👮", label: "Police",                 number: "100",  color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
-                { icon: "🔥", label: "Fire Brigade",           number: "101",  color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
-              ].map(e => (
-                <a key={e.number} href={`tel:${e.number}`} style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "13px 16px", borderRadius: 12, textDecoration: "none",
-                  background: e.bg, border: `1px solid ${e.border}`,
-                  transition: "opacity 0.2s",
-                }}
-                  onMouseEnter={el => el.currentTarget.style.opacity = "0.85"}
-                  onMouseLeave={el => el.currentTarget.style.opacity = "1"}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 20 }}>{e.icon}</span>
-                    <div>
-                      <div style={{ color: "#e2e8f0", fontWeight: 600, fontSize: 13 }}>{e.label}</div>
-                      <div style={{ color: "#64748b", fontSize: 11, marginTop: 1 }}>Tap to call</div>
-                    </div>
-                  </div>
-                  <div style={{ color: e.color, fontWeight: 800, fontSize: 20, fontFamily: "monospace" }}>{e.number}</div>
-                </a>
-              ))}
-
-              {/* find nearby link */}
-              <a
-                href="#"
-                target="_blank" rel="noreferrer"
-                style={{
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: "13px 16px", borderRadius: 12, textDecoration: "none",
-                  background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)",
-                  marginTop: 4, transition: "border-color 0.2s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(59,130,246,0.45)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(59,130,246,0.2)"}
-              >
-                <span style={{ fontSize: 20 }}>📍</span>
-                <div>
-                  <div style={{ color: "#60a5fa", fontWeight: 700, fontSize: 13 }}>Find Nearest Hospital / Doctor</div>
-                  <div style={{ color: "#64748b", fontSize: 11, marginTop: 1 }}>Opens Google Maps near you</div>
-                </div>
-                <svg style={{ marginLeft: "auto" }} width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" strokeWidth={2}>
-                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>
-                </svg>
-              </a>
-            </div>
-
-            <p style={{ color: "#374151", fontSize: 11, textAlign: "center", marginTop: 16, marginBottom: 0 }}>
-              Stay calm · Call the nearest number · Help is on the way
             </p>
           </div>
         </div>
@@ -465,22 +378,18 @@ export default function Login() {
         <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle,rgba(16,185,129,0.05) 0%,transparent 70%)" }} />
 
-        {/* top section */}
         <div className="relative z-10">
-          {/* logo row */}
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 40 }}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                style={{ background: "#10b981" }}>
-                <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity="0.3"/>
-                  <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
-                </svg>
-              </div>
-              <div>
-                <div className="text-white font-bold text-lg tracking-tight">UHCS</div>
-                <div className="text-xs" style={{ color: "#4b7a62" }}>Unified Healthcare System</div>
-              </div>
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: "#10b981" }}>
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity="0.3"/>
+                <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
+              </svg>
+            </div>
+            <div>
+              <div className="text-white font-bold text-lg tracking-tight">UHCS</div>
+              <div className="text-xs" style={{ color: "#4b7a62" }}>Unified Healthcare System</div>
             </div>
           </div>
 
@@ -510,7 +419,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* bottom section */}
         <div className="relative z-10">
           <div className="grid grid-cols-3 gap-3 mb-5 p-4 rounded-2xl"
             style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.1)" }}>
@@ -526,8 +434,23 @@ export default function Login() {
             ))}
           </div>
 
-          {/* ── bottom row: About UHCS · Developer · Contact Us ── */}
-          <div style={{ display: "flex", gap: 8, marginTop: 3 }}>
+          {/* ── 4 buttons: Emergency · About UHCS · Developer · Contact Us ── */}
+          <div style={{ display: "flex", gap: 8 }}>
+
+            {/* 1. Emergency — RED, first */}
+            <button
+              onClick={() => setShowEmergency(true)}
+              style={{
+                flex: 1, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: 700,
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "#f87171", cursor: "pointer", transition: "all 0.2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(239,68,68,0.2)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.5)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.3)"; }}
+            >🚨 Emergency</button>
+
+            {/* 2. About UHCS */}
             <button
               onClick={() => { setShowAbout(true); setAboutTab("uhcs"); }}
               style={{
@@ -538,8 +461,9 @@ export default function Login() {
               }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(16,185,129,0.14)"}
               onMouseLeave={e => e.currentTarget.style.background = "rgba(16,185,129,0.07)"}
-            >🏥 About UHCS</button>
+            >🏥 About</button>
 
+            {/* 3. Developer */}
             <button
               onClick={() => { setShowAbout(true); setAboutTab("dev"); }}
               style={{
@@ -552,6 +476,7 @@ export default function Login() {
               onMouseLeave={e => e.currentTarget.style.background = "rgba(246,201,14,0.07)"}
             >👨‍💻 Developer</button>
 
+            {/* 4. Contact Us */}
             <button
               onClick={() => setShowContact(true)}
               style={{
@@ -562,7 +487,8 @@ export default function Login() {
               }}
               onMouseEnter={e => e.currentTarget.style.background = "rgba(16,185,129,0.14)"}
               onMouseLeave={e => e.currentTarget.style.background = "rgba(16,185,129,0.07)"}
-            >📬 Contact Us</button>
+            >📬 Contact</button>
+
           </div>
         </div>
       </div>
@@ -571,7 +497,6 @@ export default function Login() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-sm animate-fade-in">
 
-          {/* mobile logo */}
           <div className="flex items-center gap-2 mb-10 lg:hidden">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#10b981" }}>
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
@@ -589,7 +514,7 @@ export default function Login() {
           </div>
 
           <h2 className="text-4xl font-black mb-3" style={{ color: "#f1f5f9", lineHeight: 1.15 }}>
-            Welcome back
+            Welcome back  
           </h2>
           <p className="text-sm leading-relaxed mb-8" style={{ color: "#64748b" }}>
             Sign in to access your unified health records, appointments, and care history.
@@ -657,8 +582,7 @@ export default function Login() {
                 background: loading ? "#0d9268" : "#10b981",
                 color: "white", opacity: loading ? 0.85 : 1,
                 cursor: loading ? "not-allowed" : "pointer", fontSize: "15px",
-              }}
-            >
+              }}>
               {loading ? (
                 <>
                   <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24">
