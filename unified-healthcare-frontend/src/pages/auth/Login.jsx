@@ -211,7 +211,7 @@ export default function Login() {
                   <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
                     UHCS digitizes and centralizes patient medical history across hospitals and clinics.
                     Patients often visit multiple doctors across different clinics, but their records remain
-                    fragmented. UHCS solves this with a <strong style={{ color: "#10b981" }}>Universal Patient ID</strong> — allowing
+                    fragmented. UHCS solves this with a <strong style={{ color: "#10b981" }}>Universal Patient ID and and Doctor ID</strong> — allowing
                     authorized providers to securely access complete records, eliminate duplicate tests,
                     and deliver faster, more accurate care.
                   </p>
