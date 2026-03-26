@@ -19,7 +19,7 @@ import SearchPatient from "../pages/doctor/SearchPatient";
 import AddRecord from "../pages/doctor/AddRecord";
 import MyRecords from "../pages/doctor/MyRecords";
 import MyPatients from "../pages/doctor/MyPatients";
-import PatientProfile from "../pages/doctor/";
+import PatientProfile from "../pages/doctor/PatientProfile";
 
 import PatientDashboard from "../pages/patient/Dashboard";
 import Timeline from "../pages/patient/Timeline";
