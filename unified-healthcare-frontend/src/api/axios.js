@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 
 // Create axios instance
 const api = axios.create({
@@ -14,6 +14,7 @@ api.interceptors.request.use(
     const token = localStorage.getItem("token");
 
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
