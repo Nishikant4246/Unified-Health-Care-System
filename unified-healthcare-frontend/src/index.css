@@ -5,20 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --bg-primary: #0f1117;
-  --bg-secondary: #1a1d27;
-  --bg-card: #1e2130;
-  --bg-hover: #252837;
+  --bg-primary: #0b1220;
+  --bg-secondary: #111c2e;
+  --bg-card: #162338;
+  --bg-hover: #1d3048;
   --emerald: #10b981;
   --emerald-light: #34d399;
   --emerald-dim: rgba(16, 185, 129, 0.1);
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border: #2a2d3e;
-  --input-bg: #1a1d2e;
-  --modal-bg: #0f1117;
-  --text-muted: #64748b;
-  --shell-border: #2a2d3e;
+  --text-primary: #f4f8fc;
+  --text-secondary: #a9b9cc;
+  --border: #29415c;
+  --input-bg: #101d30;
+  --modal-bg: #0b1220;
+  --text-muted: #7890a8;
+  --shell-border: #29415c;
 }
 
 /* Light theme overrides (applied when documentElement[data-theme="light"]) */
@@ -64,6 +64,39 @@
 
 [data-theme="light"] [style*="#2a2d3e"],
 [data-theme="light"] [style*="#1A2E45"] {
+  border-color: var(--border) !important;
+}
+
+/* Keep legacy inline dashboard colors aligned with the refreshed dark palette. */
+[data-theme="dark"] [style*="#0f1117"] {
+  background: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] [style*="#1a1d27"] {
+  background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] [style*="#1e2130"] {
+  background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] [style*="#252837"] {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="dark"] [style*="#f1f5f9"],
+[data-theme="dark"] [style*="#e2e8f0"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] [style*="#94a3b8"],
+[data-theme="dark"] [style*="#64748b"],
+[data-theme="dark"] [style*="#4A5568"] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] [style*="#2a2d3e"],
+[data-theme="dark"] [style*="#1A2E45"] {
   border-color: var(--border) !important;
 }
 
