@@ -18,6 +18,7 @@
   --input-bg: #1a1d2e;
   --modal-bg: #0f1117;
   --text-muted: #64748b;
+  --shell-border: #2a2d3e;
 }
 
 /* Light theme overrides (applied when documentElement[data-theme="light"]) */
@@ -35,6 +36,7 @@
   --input-bg: #ffffff;
   --modal-bg: #ffffff;
   --text-muted: #475569;
+  --shell-border: #dbe5ef;
 }
 
 /* Existing page components use a few inline dark-theme tokens. Keep those

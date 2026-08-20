@@ -43,9 +43,9 @@ const specializations = [
 ];
 
 const inputStyle = {
-  background: "#0f1117",
-  border: "1px solid #2a2d3e",
-  color: "#f1f5f9",
+  background: "var(--input-bg)",
+  border: "1px solid var(--border)",
+  color: "var(--text-primary)",
 };
 
 export default function AdminDoctors() {
@@ -342,10 +342,10 @@ export default function AdminDoctors() {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
             Manage Doctors
           </h1>
-          <p className="text-sm" style={{ color: "#94a3b8" }}>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             {doctors.length} doctors registered
           </p>
         </div>
@@ -359,12 +359,12 @@ export default function AdminDoctors() {
             onChange={(e) => setSearch(e.target.value)}
             className="px-4 py-2 rounded-xl text-sm outline-none w-56"
             style={{
-              background: "#1e2130",
-              border: "1px solid #2a2d3e",
-              color: "#f1f5f9",
+              background: "var(--input-bg)",
+              border: "1px solid var(--border)",
+              color: "var(--text-primary)",
             }}
             onFocus={(e) => (e.target.style.borderColor = "#10b981")}
-            onBlur={(e) => (e.target.style.borderColor = "#2a2d3e")}
+            onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
           />
 
           {/* Status filter */}
@@ -373,9 +373,9 @@ export default function AdminDoctors() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="px-3 py-2 rounded-xl text-sm outline-none"
             style={{
-              background: "#1e2130",
-              border: "1px solid #2a2d3e",
-              color: "#f1f5f9",
+              background: "var(--input-bg)",
+              border: "1px solid var(--border)",
+              color: "var(--text-primary)",
             }}>
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -388,7 +388,7 @@ export default function AdminDoctors() {
             whileTap={{ scale: 0.97 }}
             onClick={() => setShowForm(!showForm)}
             className="px-4 py-2 rounded-xl text-sm font-semibold"
-            style={{ background: "#10b981", color: "white" }}>
+            style={{ background: "#059669", color: "white", border: "1px solid #047857", boxShadow: "0 6px 14px rgba(5,150,105,0.2)" }}>
             + Add Doctor
           </motion.button>
         </div>
@@ -406,12 +406,12 @@ export default function AdminDoctors() {
             <div
               className="p-6 rounded-2xl"
               style={{
-                background: "#1e2130",
+                background: "var(--bg-card)",
                 border: "1px solid rgba(16,185,129,0.3)",
               }}>
               <h2
                 className="text-lg font-semibold mb-5"
-                style={{ color: "#f1f5f9" }}>
+                style={{ color: "var(--text-primary)" }}>
                 Create New Doctor
               </h2>
               <form onSubmit={handleCreate}>
@@ -617,7 +617,7 @@ export default function AdminDoctors() {
                     type="button"
                     onClick={() => setShowForm(false)}
                     className="px-5 py-2 rounded-xl text-sm font-medium"
-                    style={{ background: "#252837", color: "#94a3b8" }}>
+                    style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
                     Cancel
                   </button>
                 </div>
@@ -634,11 +634,11 @@ export default function AdminDoctors() {
         <div className={selectedDoctor ? "w-full xl:w-1/2" : "w-full"}>
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 8px 24px rgba(15,23,42,0.08)" }}>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #2a2d3e" }}>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
                     {[
                       "Doctor",
                       "ID",
@@ -686,7 +686,7 @@ export default function AdminDoctors() {
                         style={{
                           borderBottom:
                             i < filtered.length - 1
-                              ? "1px solid #2a2d3e"
+                              ? "1px solid var(--border)"
                               : "none",
                           background:
                             selectedDoctor?._id === doc._id
@@ -715,7 +715,7 @@ export default function AdminDoctors() {
                             <div className="min-w-0">
                               <div
                                 className="text-sm font-medium truncate"
-                                style={{ color: "#f1f5f9" }}>
+                                style={{ color: "var(--text-primary)" }}>
                                 {doc.name}
                               </div>
                               <div
@@ -802,14 +802,14 @@ export default function AdminDoctors() {
               className="w-full xl:w-1/2">
               <div
                 className="rounded-2xl overflow-hidden xl:sticky xl:top-0"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
                 {/* Panel Header */}
                 <div
                   className="p-5 relative"
                   style={{
                     background:
-                      "linear-gradient(135deg, #1e2130 0%, #1a2e1f 100%)",
-                    borderBottom: "1px solid #2a2d3e",
+                      "linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%)",
+                    borderBottom: "1px solid var(--border)",
                   }}>
                   <button
                     onClick={() => {
@@ -837,7 +837,7 @@ export default function AdminDoctors() {
                     <div className="min-w-0">
                       <h2
                         className="text-base font-bold truncate"
-                        style={{ color: "#f1f5f9" }}>
+                        style={{ color: "var(--text-primary)" }}>
                         {selectedDoctor.name}
                       </h2>
                       <p
@@ -897,7 +897,7 @@ export default function AdminDoctors() {
                 {/* Tabs */}
                 <div
                   className="flex border-b"
-                  style={{ borderColor: "#2a2d3e" }}>
+                  style={{ borderColor: "var(--border)" }}>
                   {[
                     { key: "info", label: "Details" },
                     { key: "education", label: "Education" },
@@ -927,7 +927,7 @@ export default function AdminDoctors() {
                         <div
                           key={i}
                           className="h-10 rounded-xl animate-pulse"
-                          style={{ background: "#252837" }}
+                          style={{ background: "var(--bg-hover)" }}
                         />
                       ))}
                     </div>
@@ -980,7 +980,7 @@ export default function AdminDoctors() {
                               <div
                                 key={item.label}
                                 className="p-3 rounded-xl"
-                                style={{ background: "#252837" }}>
+                                style={{ background: "var(--bg-hover)" }}>
                                 <div
                                   className="text-xs mb-1"
                                   style={{ color: "#64748b" }}>
@@ -988,7 +988,7 @@ export default function AdminDoctors() {
                                 </div>
                                 <div
                                   className="text-sm font-medium truncate"
-                                  style={{ color: "#f1f5f9" }}>
+                                  style={{ color: "var(--text-primary)" }}>
                                   {item.value}
                                 </div>
                               </div>
@@ -1040,7 +1040,7 @@ export default function AdminDoctors() {
                           {profile.doctor.bio && (
                             <div
                               className="p-4 rounded-xl"
-                              style={{ background: "#252837" }}>
+                              style={{ background: "var(--bg-hover)" }}>
                               <div
                                 className="text-xs mb-2 font-semibold"
                                 style={{ color: "#64748b" }}>
@@ -1048,7 +1048,7 @@ export default function AdminDoctors() {
                               </div>
                               <p
                                 className="text-sm leading-relaxed"
-                                style={{ color: "#94a3b8" }}>
+                                style={{ color: "var(--text-secondary)" }}>
                                 {profile.doctor.bio}
                               </p>
                             </div>
@@ -1057,7 +1057,7 @@ export default function AdminDoctors() {
                           {/* Admin Actions */}
                           <div
                             className="pt-4"
-                            style={{ borderTop: "1px solid #2a2d3e" }}>
+                            style={{ borderTop: "1px solid var(--border)" }}>
                             <p
                               className="text-xs font-semibold uppercase tracking-wider mb-3"
                               style={{ color: "#64748b" }}>
@@ -1131,8 +1131,8 @@ export default function AdminDoctors() {
                                 key={idx}
                                 className="p-4 rounded-xl flex items-start gap-3"
                                 style={{
-                                  background: "#252837",
-                                  border: "1px solid #2a2d3e",
+                                  background: "var(--bg-hover)",
+                                  border: "1px solid var(--border)",
                                 }}>
                                 <div
                                   className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -1146,7 +1146,7 @@ export default function AdminDoctors() {
                                 <div>
                                   <div
                                     className="text-sm font-semibold"
-                                    style={{ color: "#f1f5f9" }}>
+                                    style={{ color: "var(--text-primary)" }}>
                                     {edu.degree}
                                   </div>
                                   <div
@@ -1189,7 +1189,7 @@ export default function AdminDoctors() {
                                 </div>
                                 <div
                                   className="text-sm font-mono font-medium"
-                                  style={{ color: "#f1f5f9" }}>
+                                  style={{ color: "var(--text-primary)" }}>
                                   {profile.doctor.licenseNumber ||
                                     "Not provided"}
                                 </div>
@@ -1338,8 +1338,8 @@ export default function AdminDoctors() {
                                           key={i}
                                           className="p-3 rounded-xl"
                                           style={{
-                                            background: "#252837",
-                                            border: "1px solid #2a2d3e",
+                                            background: "var(--bg-hover)",
+                                            border: "1px solid var(--border)",
                                           }}>
                                           <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                                             {[
@@ -1366,7 +1366,7 @@ export default function AdminDoctors() {
                                                   {item.label}
                                                 </div>
                                                 <div
-                                                  style={{ color: "#f1f5f9" }}>
+                                                  style={{ color: "var(--text-primary)" }}>
                                                   {item.value || "—"}
                                                 </div>
                                               </div>
@@ -1458,7 +1458,7 @@ export default function AdminDoctors() {
                                 <div
                                   key={rec._id}
                                   className="flex items-center justify-between p-3 rounded-xl"
-                                  style={{ background: "#252837" }}>
+                                  style={{ background: "var(--bg-hover)" }}>
                                   <div className="flex items-center gap-3">
                                     <div
                                       className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
@@ -1471,7 +1471,7 @@ export default function AdminDoctors() {
                                     <div>
                                       <div
                                         className="text-sm font-medium"
-                                        style={{ color: "#f1f5f9" }}>
+                                        style={{ color: "var(--text-primary)" }}>
                                         {rec.patient?.name}
                                       </div>
                                       <div
@@ -1525,16 +1525,16 @@ export default function AdminDoctors() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               className="w-full max-w-md p-6 rounded-2xl"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               onClick={(e) => e.stopPropagation()}>
               <h3
                 className="text-lg font-bold mb-2"
-                style={{ color: "#f1f5f9" }}>
+                style={{ color: "var(--text-primary)" }}>
                 Suspend Doctor
               </h3>
               <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
                 Suspending{" "}
-                <strong style={{ color: "#f1f5f9" }}>
+                <strong style={{ color: "var(--text-primary)" }}>
                   {selectedDoctor?.name}
                 </strong>{" "}
                 will immediately block their login access.
@@ -1565,7 +1565,7 @@ export default function AdminDoctors() {
                     setSuspendReason("");
                   }}
                   className="flex-1 py-2.5 rounded-xl text-sm font-medium"
-                  style={{ background: "#252837", color: "#94a3b8" }}>
+                  style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
                   Cancel
                 </button>
               </div>

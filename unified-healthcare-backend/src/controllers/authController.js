@@ -27,10 +27,35 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 };
 
+const emailPattern = /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
+const phonePattern = /^[6-9]\d{9}$/;
+
+const validateRegistration = ({ name, email, password, phone }) => {
+  if (typeof name !== "string" || name.trim().length < 3 || name.trim().length > 100) {
+    return "Name must be between 3 and 100 characters";
+  }
+  if (typeof email !== "string" || email.length > 254 || !emailPattern.test(email)) {
+    return "Enter a valid email address using English letters and numbers";
+  }
+  if (typeof password !== "string" || password.length < 6 || password.length > 128 || /\s/.test(password)) {
+    return "Password must be 6-128 characters and cannot contain spaces";
+  }
+  if (typeof phone !== "string" || !phonePattern.test(phone)) {
+    return "Enter a valid 10-digit Indian mobile number";
+  }
+  return null;
+};
+
 // ================= PATIENT REGISTER =================
 export const registerPatient = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const name = typeof req.body.name === "string" ? req.body.name.trim() : req.body.name;
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : req.body.email;
+    const password = req.body.password;
+    const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : req.body.phone;
+
+    const validationError = validateRegistration({ name, email, password, phone });
+    if (validationError) return res.status(400).json({ message: validationError });
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -76,10 +101,6 @@ export const registerPatient = async (req, res) => {
 export const registerDoctor = async (req, res) => {
   try {
     const {
-      name,
-      email,
-      password,
-      phone,
       gender,
       specialization,
       qualification,
@@ -90,6 +111,13 @@ export const registerDoctor = async (req, res) => {
       bio,
       education,
     } = req.body;
+    const name = typeof req.body.name === "string" ? req.body.name.trim() : req.body.name;
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : req.body.email;
+    const password = req.body.password;
+    const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : req.body.phone;
+
+    const validationError = validateRegistration({ name, email, password, phone });
+    if (validationError) return res.status(400).json({ message: validationError });
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -100,6 +128,13 @@ export const registerDoctor = async (req, res) => {
       return res.status(400).json({
         message: "Specialization, qualification, license number and hospital are required",
       });
+    }
+    if (!Number.isFinite(Number(experience)) || Number(experience) < 0 || Number(experience) > 80) {
+      return res.status(400).json({ message: "Enter valid years of experience between 0 and 80" });
+    }
+    if (consultationFee !== undefined && consultationFee !== "" &&
+      (!Number.isFinite(Number(consultationFee)) || Number(consultationFee) < 0)) {
+      return res.status(400).json({ message: "Enter a valid consultation fee" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

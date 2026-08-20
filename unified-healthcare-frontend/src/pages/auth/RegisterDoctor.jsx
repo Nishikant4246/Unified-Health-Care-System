@@ -102,7 +102,7 @@ export default function RegisterDoctor() {
       case "name":
         return form.name.trim().length < 3 ? "Min 3 characters required" : "";
       case "email":
-        return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ? "Enter a valid email address" : "";
+        return !/^[\x00-\x7F]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email) ? "Enter a valid email address" : "";
       case "phone":
         return !/^[6-9][0-9]{9}$/.test(form.phone) ? "Enter a valid 10-digit Indian mobile number" : "";
       case "password": {
@@ -130,7 +130,7 @@ export default function RegisterDoctor() {
       const keys = ["name", "email", "phone", "password"];
       setTouched((prev) => ({ ...prev, ...Object.fromEntries(keys.map((k) => [k, true])) }));
       if (form.name.trim().length < 3)                         { setError("Name must be at least 3 characters"); return false; }
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))     { setError("Enter a valid email address"); return false; }
+      if (!/^[\x00-\x7F]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) { setError("Enter a valid email address"); return false; }
       if (!/^[6-9][0-9]{9}$/.test(form.phone))                { setError("Enter a valid 10-digit mobile number"); return false; }
       if (form.password.length < 6)                           { setError("Password must be at least 6 characters"); return false; }
       if (!/[A-Z]/.test(form.password))                       { setError("Password needs at least one uppercase letter"); return false; }
@@ -187,7 +187,7 @@ export default function RegisterDoctor() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Application Submitted!</h1>
-          <p className="text-sm leading-relaxed mb-4" style={{ color: "#94a3b8" }}>
+          <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-secondary)" }}>
             Your doctor registration has been submitted and is pending admin review.
             You will be able to login once approved.
           </p>
@@ -229,10 +229,10 @@ export default function RegisterDoctor() {
             </div>
             <span className="font-bold text-xl tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</span>
           </div>
-          <h1 className="text-4xl font-bold leading-tight mb-6" style={{ color: "#f1f5f9" }}>
+          <h1 className="text-4xl font-bold leading-tight mb-6" style={{ color: "var(--text-primary)" }}>
             Join as a<br/><span style={{ color: "#3b82f6" }}>Verified</span><br/>Doctor
           </h1>
-          <p className="text-base leading-relaxed mb-8" style={{ color: "#94a3b8" }}>
+          <p className="text-base leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
             Complete your professional profile to apply. All credentials are verified by our admin team before approval.
           </p>
 
@@ -245,7 +245,7 @@ export default function RegisterDoctor() {
               </svg>
               <div>
                 <div className="text-xs font-semibold mb-1" style={{ color: "#3b82f6" }}>Data Security</div>
-                <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                   Your information is encrypted and stored securely. License numbers and credentials are only visible to verified admins.
                 </p>
               </div>
@@ -264,7 +264,7 @@ export default function RegisterDoctor() {
                 style={{ background: step > i + 1 ? "#10b981" : step === i + 1 ? "#3b82f6" : "var(--border)", color: "white" }}>
                 {step > i + 1 ? "✓" : i + 1}
               </div>
-              <div className="text-sm font-semibold" style={{ color: step === i + 1 ? "#f1f5f9" : "#64748b" }}>
+              <div className="text-sm font-semibold" style={{ color: step === i + 1 ? "var(--text-primary)" : "var(--text-secondary)" }}>
                 {label}
               </div>
             </div>
@@ -286,8 +286,8 @@ export default function RegisterDoctor() {
 
           <div className="mb-8">
             <p className="text-xs font-medium mb-1" style={{ color: "#3b82f6" }}>Step {step} of {steps.length}</p>
-            <h2 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>{steps[step - 1]}</h2>
-            <p className="text-sm" style={{ color: "#94a3b8" }}>
+            <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>{steps[step - 1]}</h2>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               {step === 1 && "Your basic personal information — kept private and encrypted"}
               {step === 2 && "Your medical credentials and current practice details"}
               {step === 3 && "Your education background and professional summary"}
@@ -315,7 +315,7 @@ export default function RegisterDoctor() {
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2} className="flex-shrink-0 mt-0.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
-                <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                   Your personal data is collected solely for verification and access purposes. It is never shared with third parties.
                 </p>
               </div>
@@ -352,8 +352,9 @@ export default function RegisterDoctor() {
                       <polyline points="22,6 12,13 2,6"/>
                     </svg>
                   </div>
-                  <input type="email" value={form.email}
-                    onChange={(e) => set("email", e.target.value)}
+                  <input type="email" inputMode="email" autoComplete="email" maxLength={254}
+                    value={form.email}
+                    onChange={(e) => set("email", e.target.value.replace(/\s/g, "").toLowerCase())}
                     onBlur={() => touch("email")}
                     placeholder="doctor@hospital.com"
                     className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
@@ -576,7 +577,7 @@ export default function RegisterDoctor() {
                 <div className="space-y-3">
                   {form.education.map((edu, idx) => (
                     <div key={idx} className="p-4 rounded-xl relative"
-                      style={{ background: "#252837", border: "1px solid #2a2d3e" }}>
+                      style={{ background: "var(--bg-card)", border: "1px solid var(--border)", boxShadow: "0 4px 14px rgba(15,23,42,0.05)" }}>
                       {form.education.length > 1 && (
                         <button type="button" onClick={() => removeEducation(idx)}
                           className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-xs"
@@ -648,21 +649,21 @@ export default function RegisterDoctor() {
           <div className="flex gap-3 mt-8">
             {step > 1 && (
               <button type="button" onClick={handleBack}
-                className="px-6 py-3 rounded-xl text-sm font-medium"
-                style={{ background: "#252837", color: "#94a3b8" }}>
+                className="px-6 py-3 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: "var(--bg-card)", color: "var(--text-primary)", border: "1px solid var(--border)", boxShadow: "0 4px 12px rgba(15,23,42,0.06)" }}>
                 ← Back
               </button>
             )}
             {step < 3 ? (
               <button type="button" onClick={handleNext}
-                className="flex-1 py-3 rounded-xl font-semibold text-sm"
-                style={{ background: "#3b82f6", color: "white" }}>
+                className="flex-1 py-3 rounded-xl font-semibold text-sm transition-all"
+                style={{ background: "#2563eb", color: "white", border: "1px solid #1d4ed8", boxShadow: "0 6px 16px rgba(37,99,235,0.22)" }}>
                 Continue →
               </button>
             ) : (
               <button type="button" onClick={handleSubmit} disabled={loading}
                 className="flex-1 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2"
-                style={{ background: loading ? "#1d4ed8" : "#3b82f6", color: "white", opacity: loading ? 0.8 : 1, cursor: loading ? "not-allowed" : "pointer" }}>
+                style={{ background: loading ? "#1d4ed8" : "#2563eb", color: "white", border: "1px solid #1d4ed8", boxShadow: "0 6px 16px rgba(37,99,235,0.22)", opacity: loading ? 0.8 : 1, cursor: loading ? "not-allowed" : "pointer" }}>
                 {loading ? (
                   <><svg className="animate-spin" width="14" height="14" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="white" strokeWidth="3" strokeDasharray="32" strokeDashoffset="12"/></svg>Submitting...</>
                 ) : "Submit Application"}

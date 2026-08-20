@@ -112,7 +112,7 @@ export default function DoctorLayout() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-primary)" }}>
+    <div style={{ display: "flex", gap: isMobile ? 0 : 14, padding: isMobile ? 0 : 12, height: "100vh", overflow: "hidden", background: "var(--bg-primary)" }}>
 
       {/* Mobile overlay */}
       {isMobile && mobileOpen && (
@@ -126,8 +126,9 @@ export default function DoctorLayout() {
       {!isMobile && (
         <aside style={{
           width: collapsed ? 72 : 240,
-                    background: "var(--bg-secondary)",
-                    borderRight: "1px solid var(--border)",
+          background: "var(--bg-secondary)",
+          border: "1px solid rgba(201,168,76,0.7)", borderTop: "3px solid #C9A84C", borderRadius: 16,
+          height: "100%",
           flexShrink: 0,
           transition: "width 0.3s ease",
           overflow: "hidden",
@@ -142,7 +143,7 @@ export default function DoctorLayout() {
           position: "fixed", top: 0, left: 0, bottom: 0,
           width: 240, zIndex: 50,
                     background: "var(--bg-secondary)",
-                    borderRight: "1px solid var(--border)",
+          border: "1px solid rgba(201,168,76,0.7)", borderTop: "3px solid #C9A84C", borderRadius: 16,
           transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 0.28s ease",
         }}>
@@ -151,7 +152,7 @@ export default function DoctorLayout() {
       )}
 
       {/* Main */}
-      <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, minWidth: 0, height: "100%", overflow: "hidden", border: "1px solid var(--shell-border)", borderRadius: 16, boxShadow: "0 8px 24px rgba(15,23,42,0.08)", background: "var(--bg-primary)" }}>
 
         {/* Topbar */}
         <header style={{

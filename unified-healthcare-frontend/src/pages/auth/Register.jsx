@@ -70,7 +70,7 @@ export default function Register() {
         return form.name.trim().length < 3
           ? "Name must be at least 3 characters" : "";
       case "email":
-        return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)
+        return !/^[\x00-\x7F]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)
           ? "Enter a valid email address (e.g. name@example.com)" : "";
       case "phone":
         return !/^[6-9][0-9]{9}$/.test(form.phone)
@@ -268,8 +268,11 @@ export default function Register() {
                 </div>
                 <input
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  maxLength={254}
                   value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
+                  onChange={(e) => set("email", e.target.value.replace(/\s/g, "").toLowerCase())}
                   onBlur={() => touch("email")}
                   placeholder="you@example.com"
                   className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
