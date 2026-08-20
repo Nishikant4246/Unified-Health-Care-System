@@ -14,9 +14,9 @@ export default function Profile() {
   const [error,   setError]   = useState("");
 
   const inputStyle = {
-    background: "#1e2130",
-    border:     "1px solid #2a2d3e",
-    color:      "#f1f5f9",
+    background: "var(--bg-card)",
+    border:     "1px solid var(--border)",
+    color:      "var(--text-primary)",
   };
 
   const handleSubmit = async (e) => {
@@ -51,8 +51,8 @@ export default function Profile() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>My Profile</h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>Manage your personal information</p>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>My Profile</h1>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Manage your personal information</p>
       </motion.div>
 
       {/* ── Avatar / Identity card ── */}
@@ -61,7 +61,7 @@ export default function Profile() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
         className="p-6 rounded-2xl mb-4 relative overflow-hidden"
-        style={{ background: "#1e2130", border: "1px solid rgba(168,85,247,0.2)" }}
+        style={{ background: "var(--bg-card)", border: "1px solid rgba(168,85,247,0.2)" }}
       >
         {/* bg accent */}
         <div
@@ -88,10 +88,10 @@ export default function Profile() {
           </motion.div>
 
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold truncate" style={{ color: "#f1f5f9" }}>
+            <h2 className="text-lg font-bold truncate" style={{ color: "var(--text-primary)" }}>
               {user?.name}
             </h2>
-            <p className="text-sm truncate" style={{ color: "#94a3b8" }}>{user?.email}</p>
+            <p className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>{user?.email}</p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span
                 className="text-xs font-mono px-2 py-0.5 rounded-full"
@@ -122,7 +122,7 @@ export default function Profile() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
         className="p-5 rounded-2xl mb-4"
-        style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       >
         <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#64748b" }}>
           Account Information
@@ -156,7 +156,7 @@ export default function Profile() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
         className="p-5 rounded-2xl"
-        style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       >
         <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#64748b" }}>
           Edit Information

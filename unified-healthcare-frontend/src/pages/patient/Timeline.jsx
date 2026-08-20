@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { CardSkeleton } from "../../components/common/Skeleton";
+import { useLanguage } from "../../context/LanguageContext";
 
 const typeColors = {
   "system-generated": { color: "#a855f7", label: "Doctor Visit" },
@@ -102,11 +103,11 @@ function TimelineCard({ record, index }) {
             className="w-4 h-4 rounded-full border-2 z-10"
             style={{ background: type.color, borderColor: type.color, boxShadow: `0 0 12px ${type.color}60` }}
           />
-          <div className="w-0.5 flex-1 mt-1" style={{ background: "#2a2d3e", minHeight: "32px" }} />
+          <div className="w-0.5 flex-1 mt-1" style={{ background: "var(--border)", minHeight: "32px" }} />
         </div>
 
         <div className="flex-1 mb-6 rounded-2xl overflow-hidden"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
 
           {/* Header */}
           <div
@@ -120,8 +121,8 @@ function TimelineCard({ record, index }) {
                 {type.label}
               </span>
               <div>
-                <div className="font-semibold text-sm" style={{ color: "#f1f5f9" }}>{record.diagnosis}</div>
-                <div className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>
+                <div className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{record.diagnosis}</div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                   {new Date(record.visitDate).toLocaleDateString("en-IN", {
                     day: "numeric", month: "long", year: "numeric",
                   })}
@@ -155,23 +156,23 @@ function TimelineCard({ record, index }) {
 
                   {/* Doctor */}
                   {record.doctor ? (
-                    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "#252837" }}>
+                    <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "var(--bg-hover)" }}>
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
                         style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6" }}>
                         {record.doctor.name?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>
+                        <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                           Dr. {record.doctor.name}
                         </div>
-                        <div className="text-xs" style={{ color: "#94a3b8" }}>
+                        <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
                           {record.doctor.specialization || "General"} · {record.doctor.uniqueId}
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 rounded-xl" style={{ background: "#252837" }}>
-                      <span className="text-xs" style={{ color: "#94a3b8" }}>Self Uploaded Record</span>
+                    <div className="p-3 rounded-xl" style={{ background: "var(--bg-hover)" }}>
+                      <span className="text-xs" style={{ color: "var(--text-secondary)" }}>Self Uploaded Record</span>
                     </div>
                   )}
 
@@ -252,7 +253,7 @@ function TimelineCard({ record, index }) {
                         Doctor Notes
                       </div>
                       <p className="text-sm p-3 rounded-xl leading-relaxed"
-                        style={{ background: "#252837", color: "#f1f5f9" }}>
+                        style={{ background: "var(--bg-hover)", color: "var(--text-primary)" }}>
                         {record.notes}
                       </p>
                     </div>
@@ -334,6 +335,7 @@ function TimelineCard({ record, index }) {
 }
 
 export default function Timeline() {
+  const { t } = useLanguage();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -347,8 +349,8 @@ export default function Timeline() {
   return (
     <PageTransition>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>Medical Timeline</h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Medical Timeline</h1>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           Your complete health history · {records.length} record{records.length !== 1 ? "s" : ""}
         </p>
       </div>
@@ -358,10 +360,10 @@ export default function Timeline() {
       ) : records.length === 0 ? (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
           className="text-center py-20 rounded-2xl"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="text-5xl mb-4">🏥</div>
-          <p className="font-semibold mb-1" style={{ color: "#f1f5f9" }}>No records yet</p>
-          <p className="text-sm" style={{ color: "#94a3b8" }}>
+          <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{t('noRecordsYet')}</p>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             Your medical history will appear here after doctor visits
           </p>
         </motion.div>

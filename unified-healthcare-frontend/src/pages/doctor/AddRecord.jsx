@@ -30,9 +30,9 @@ export default function AddRecord() {
   const [error, setError]         = useState("");
 
   const inputStyle = {
-    background: "#1e2130",
-    border:     "1px solid #2a2d3e",
-    color:      "#f1f5f9",
+    background: "var(--bg-card)",
+    border:     "1px solid var(--border)",
+    color:      "var(--text-primary)",
   };
 
   // ── Search by name OR uniqueId ──────────────────────────────
@@ -133,10 +133,10 @@ export default function AddRecord() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
           Add Medical Record
         </h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           Create a new visit record for a patient
         </p>
       </motion.div>
@@ -150,7 +150,7 @@ export default function AddRecord() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="p-6 rounded-2xl mb-6"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <h2 className="text-xs font-semibold uppercase mb-4 tracking-wider" style={{ color: "#94a3b8" }}>
               Step 1 — Find Patient
@@ -201,7 +201,7 @@ export default function AddRecord() {
                   <div
                     key={p._id}
                     className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all"
-                    style={{ background: "#252837", border: "1px solid #2a2d3e" }}
+                    style={{ background: "var(--bg-hover)", border: "1px solid var(--border)" }}
                     onClick={() => { setPatient(p); setSearchResults([]); }}
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#10b98150")}
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
@@ -214,8 +214,8 @@ export default function AddRecord() {
                         {p.name?.[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>{p.name}</div>
-                        <div className="text-xs font-mono" style={{ color: "#64748b" }}>{p.uniqueId}</div>
+                        <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{p.name}</div>
+                        <div className="text-xs font-mono" style={{ color: "var(--text-secondary)" }}>{p.uniqueId}</div>
                       </div>
                     </div>
                     <span className="text-xs" style={{ color: "#10b981" }}>Select →</span>
@@ -242,7 +242,7 @@ export default function AddRecord() {
                 {patient.name?.[0]?.toUpperCase()}
               </div>
               <div>
-                <div className="font-semibold text-sm" style={{ color: "#f1f5f9" }}>
+                <div className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
                   {patient.name}
                 </div>
                 <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export default function AddRecord() {
             <button
               onClick={() => { setPatient(null); setPatientQuery(""); setSearchResults([]); }}
               className="text-xs px-3 py-1.5 rounded-lg transition-all"
-              style={{ background: "#252837", color: "#94a3b8", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-hover)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#2a2d3e")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "#252837")}
             >
@@ -281,7 +281,7 @@ export default function AddRecord() {
           >
             <div
               className="p-5 rounded-2xl space-y-4"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               <h2 className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#94a3b8" }}>
                 Step 2 — Record Details
@@ -393,10 +393,10 @@ export default function AddRecord() {
                 <div className="flex items-end">
                   <div
                     className="w-full px-4 py-3 rounded-xl text-sm"
-                    style={{ background: "#252837", border: "1px solid #2a2d3e" }}
+                    style={{ background: "var(--bg-hover)", border: "1px solid var(--border)" }}
                   >
                     <span className="text-xs" style={{ color: "#64748b" }}>Files selected</span>
-                    <div className="font-semibold mt-0.5" style={{ color: "#f1f5f9" }}>
+                    <div className="font-semibold mt-0.5" style={{ color: "var(--text-primary)" }}>
                       {files.length > 0 ? `${files.length} file${files.length > 1 ? "s" : ""}` : "None"}
                     </div>
                   </div>

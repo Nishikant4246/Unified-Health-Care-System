@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
+import { useLanguage } from "../../context/LanguageContext";
 
 // ── Password strength ─────────────────────────────────────────
 function getPasswordStrength(pw) {
@@ -34,7 +35,7 @@ function SecureBadge({ tip }) {
       >?</button>
       {show && (
         <div className="absolute z-50 bottom-6 left-0 w-52 p-2.5 rounded-xl text-xs leading-relaxed"
-          style={{ background: "#1e2130", border: "1px solid rgba(16,185,129,0.2)", color: "#94a3b8", whiteSpace: "normal" }}>
+          style={{ background: "var(--bg-card)", border: "1px solid rgba(16,185,129,0.2)", color: "var(--text-secondary)", whiteSpace: "normal" }}>
           {tip}
         </div>
       )}
@@ -43,12 +44,13 @@ function SecureBadge({ tip }) {
 }
 
 const inputStyle = {
-  background: "#1e2130",
-  border: "1px solid #2a2d3e",
-  color: "#f1f5f9",
+  background: "var(--bg-card)",
+  border: "1px solid var(--border)",
+  color: "var(--text-primary)",
 };
 
 export default function Register() {
+  const { t } = useLanguage();
   const navigate  = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [error,    setError]    = useState("");
@@ -117,7 +119,7 @@ export default function Register() {
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8"
-        style={{ background: "#0f1117" }}>
+              style={{ background: "var(--bg-primary)" }}>
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ background: "rgba(16,185,129,0.12)", border: "2px solid rgba(16,185,129,0.3)" }}>
@@ -126,10 +128,10 @@ export default function Register() {
               <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold mb-3" style={{ color: "#f1f5f9" }}>
+          <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
             Account Created!
           </h1>
-          <p className="text-sm leading-relaxed mb-2" style={{ color: "#94a3b8" }}>
+          <p className="text-sm leading-relaxed mb-2" style={{ color: "var(--text-secondary)" }}>
             Welcome to UHCS! Check your email for your welcome message.
           </p>
           <p className="text-xs" style={{ color: "#64748b" }}>
@@ -141,11 +143,11 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0f1117" }}>
+      <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
       {/* ── Left Panel ─────────────────────────────────────── */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between p-16 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0f1117 0%, #1a2e1f 100%)" }}>
+              style={{ background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)" }}>
         <div className="absolute top-[-80px] left-[-80px] w-[400px] h-[400px] rounded-full opacity-10"
           style={{ background: "radial-gradient(circle, #10b981, transparent)" }}/>
         <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] rounded-full opacity-10"
@@ -159,15 +161,15 @@ export default function Register() {
                 <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
               </svg>
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">UHCS</span>
+            <span className="font-bold text-xl tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</span>
           </div>
 
-          <h1 className="text-5xl font-bold leading-tight mb-6" style={{ color: "#f1f5f9" }}>
+          <h1 className="text-5xl font-bold leading-tight mb-6" style={{ color: "var(--text-primary)" }}>
             Join the<br/>
             <span style={{ color: "#10b981" }}>Healthcare</span><br/>
             Network
           </h1>
-          <p className="text-lg leading-relaxed mb-8" style={{ color: "#94a3b8" }}>
+          <p className="text-lg leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
             Create your patient account and get instant access to your complete medical history.
           </p>
 
@@ -208,10 +210,10 @@ export default function Register() {
         <div className="w-full max-w-md">
 
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2" style={{ color: "#f1f5f9" }}>
-              Create Account
+            <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--text-primary)" }}>
+              {t("createAccount")}
             </h2>
-            <p style={{ color: "#94a3b8" }}>Register as a patient to get started</p>
+            <p style={{ color: "var(--text-secondary)" }}>{t("registerPatient")}</p>
           </div>
 
           {/* Global error */}
@@ -231,7 +233,7 @@ export default function Register() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "#94a3b8" }}>
-                Full Name
+                {t("fullName")}
                 <SecureBadge tip="Use your real full name as it will appear on medical records." />
               </label>
               <input
@@ -241,7 +243,7 @@ export default function Register() {
                 onBlur={() => touch("name")}
                 placeholder="e.g. Nishikant Kshirsagar"
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-                style={{ ...inputStyle, borderColor: fieldError("name") ? "#ef4444" : "#2a2d3e" }}
+                style={{ ...inputStyle, borderColor: fieldError("name") ? "#ef4444" : "var(--border)" }}
                 onFocus={(e) => (e.target.style.borderColor = "#10b981")}
               />
               {fieldError("name") && (
@@ -252,8 +254,8 @@ export default function Register() {
             {/* Email */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                style={{ color: "#94a3b8" }}>
-                Email Address
+                style={{ color: "var(--text-primary)" }}>
+                {t("emailAddress")}
                 <SecureBadge tip="Use a real email — your welcome message and records will be sent here." />
               </label>
               <div className="relative">
@@ -271,7 +273,7 @@ export default function Register() {
                   onBlur={() => touch("email")}
                   placeholder="you@example.com"
                   className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
-                  style={{ ...inputStyle, borderColor: fieldError("email") ? "#ef4444" : "#2a2d3e" }}
+                  style={{ ...inputStyle, borderColor: fieldError("email") ? "#ef4444" : "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                 />
                 {/* live valid indicator */}
@@ -292,7 +294,7 @@ export default function Register() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "#94a3b8" }}>
-                Phone Number
+                {t("phoneNumber")}
                 <SecureBadge tip="10-digit Indian mobile number starting with 6, 7, 8 or 9." />
               </label>
               <div className="relative">
@@ -307,7 +309,7 @@ export default function Register() {
                   onBlur={() => touch("phone")}
                   placeholder="9325934246"
                   className="w-full pl-11 pr-12 py-3 rounded-xl text-sm outline-none transition-all font-mono"
-                  style={{ ...inputStyle, borderColor: fieldError("phone") ? "#ef4444" : "#2a2d3e" }}
+                  style={{ ...inputStyle, borderColor: fieldError("phone") ? "#ef4444" : "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                 />
                 {/* digit counter */}
@@ -324,8 +326,8 @@ export default function Register() {
             {/* Password */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
-                style={{ color: "#94a3b8" }}>
-                Password
+                style={{ color: "var(--text-primary)" }}>
+                {t("password")}
                 <SecureBadge tip="Use 8+ characters with uppercase, number, and symbol for best security." />
               </label>
               <div className="relative">
@@ -343,7 +345,7 @@ export default function Register() {
                   onBlur={() => touch("password")}
                   placeholder="Min 6 characters"
                   className="w-full pl-11 pr-11 py-3 rounded-xl text-sm outline-none transition-all"
-                  style={{ ...inputStyle, borderColor: fieldError("password") ? "#ef4444" : "#2a2d3e" }}
+                  style={{ ...inputStyle, borderColor: fieldError("password") ? "#ef4444" : "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
@@ -362,7 +364,7 @@ export default function Register() {
                   <div className="flex gap-1 mb-1">
                     {[1,2,3,4].map((i) => (
                       <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                        style={{ background: pwStrength.score >= i ? pwStrength.color : "#2a2d3e" }}/>
+                        style={{ background: pwStrength.score >= i ? pwStrength.color : "var(--border)" }}/>
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
@@ -401,15 +403,15 @@ export default function Register() {
                   </svg>
                   Creating Account...
                 </>
-              ) : "Create Account"}
+              ) : t("createAccount")}
             </button>
           </form>
 
-          <p className="mt-8 text-center text-sm" style={{ color: "#94a3b8" }}>
-            Already have an account?{" "}
-            <Link to="/" className="font-semibold" style={{ color: "#10b981" }}>Sign in</Link>
+          <p className="mt-8 text-center text-sm" style={{ color: "var(--text-secondary)" }}>
+            {t("noAccount")}{" "}
+            <Link to="/" className="font-semibold" style={{ color: "#10b981" }}>{t("signIn")}</Link>
           </p>
-          <p className="mt-3 text-center text-sm" style={{ color: "#94a3b8" }}>
+          <p className="mt-3 text-center text-sm" style={{ color: "var(--text-secondary)" }}>
             Are you a doctor?{" "}
             <Link to="/register-doctor" className="font-semibold" style={{ color: "#10b981" }}>Apply here</Link>
           </p>

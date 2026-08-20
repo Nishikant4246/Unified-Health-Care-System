@@ -34,9 +34,9 @@ export default function UploadReport() {
   };
 
   const inputStyle = {
-    background: '#1e2130',
-    border: '1px solid #2a2d3e',
-    color: '#f1f5f9',
+    background: 'var(--bg-card)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
   };
 
   if (success) {
@@ -48,8 +48,8 @@ export default function UploadReport() {
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </div>
-        <h2 className="text-xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Report Uploaded!</h2>
-        <p className="text-sm mb-6" style={{ color: '#94a3b8' }}>Your report has been saved to your timeline</p>
+        <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Report Uploaded!</h2>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>Your report has been saved to your timeline</p>
         <button
           onClick={() => { setSuccess(false); setFiles([]); setNotes(""); setVisitDate(""); }}
           className="px-5 py-2 rounded-xl text-sm font-semibold"
@@ -63,8 +63,8 @@ export default function UploadReport() {
   return (
     <div className="animate-fade-in max-w-xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#f1f5f9' }}>Upload Old Report</h1>
-        <p className="text-sm" style={{ color: '#94a3b8' }}>Import past medical documents to your timeline</p>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>Upload Old Report</h1>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Import past medical documents to your timeline</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,13 +77,13 @@ export default function UploadReport() {
 
         {/* File Drop Zone */}
         <div>
-          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: '#94a3b8' }}>
+          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-primary)' }}>
             Select Files *
           </label>
           <div className="relative border-2 border-dashed rounded-2xl p-10 text-center transition-all"
-            style={{ borderColor: files.length > 0 ? '#10b981' : '#2a2d3e' }}
+            style={{ borderColor: files.length > 0 ? '#10b981' : 'var(--border)' }}
             onMouseEnter={e => { if (files.length === 0) e.currentTarget.style.borderColor = '#a855f7'; }}
-            onMouseLeave={e => { if (files.length === 0) e.currentTarget.style.borderColor = '#2a2d3e'; }}
+            onMouseLeave={e => { if (files.length === 0) e.currentTarget.style.borderColor = 'var(--border)'; }}
           >
             <input
               type="file"
@@ -100,7 +100,7 @@ export default function UploadReport() {
                 </p>
                 <div className="mt-3 space-y-1">
                   {files.map((f, i) => (
-                    <p key={i} className="text-xs" style={{ color: '#94a3b8' }}>{f.name}</p>
+                    <p key={i} className="text-xs" style={{ color: 'var(--text-secondary)' }}>{f.name}</p>
                   ))}
                 </div>
               </div>
@@ -112,10 +112,10 @@ export default function UploadReport() {
                   <polyline points="17 8 12 3 7 8"/>
                   <line x1="12" y1="3" x2="12" y2="15"/>
                 </svg>
-                <p className="text-sm font-medium" style={{ color: '#94a3b8' }}>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                   Click to select files
                 </p>
-                <p className="text-xs mt-1" style={{ color: '#64748b' }}>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                   PDF, JPG, PNG supported
                 </p>
               </div>
@@ -124,7 +124,7 @@ export default function UploadReport() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: '#94a3b8' }}>
+          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-primary)' }}>
             Date of Report (optional)
           </label>
           <input
@@ -137,7 +137,7 @@ export default function UploadReport() {
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: '#94a3b8' }}>
+          <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-primary)' }}>
             Notes (optional)
           </label>
           <textarea

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/axios";
+import { useLanguage } from "../../context/LanguageContext";
 
 const inputStyle = {
-  background: "#1e2130",
-  border: "1px solid #2a2d3e",
-  color: "#f1f5f9",
+  background: "var(--bg-card)",
+  border: "1px solid var(--border)",
+  color: "var(--text-primary)",
 };
 
 const qualifications = ["MBBS", "MD", "MS", "DM", "BDS", "MDS", "BAMS", "BHMS", "DNB", "MCh"];
@@ -53,7 +54,7 @@ function SecureBadge({ tip }) {
       {show && (
         <div
           className="absolute z-50 bottom-6 left-0 w-52 p-2.5 rounded-xl text-xs leading-relaxed"
-          style={{ background: "#1e2130", border: "1px solid #3b82f630", color: "#94a3b8", whiteSpace: "normal" }}
+          style={{ background: "var(--bg-card)", border: "1px solid #3b82f630", color: "var(--text-secondary)", whiteSpace: "normal" }}
         >
           {tip}
         </div>
@@ -63,6 +64,7 @@ function SecureBadge({ tip }) {
 }
 
 export default function RegisterDoctor() {
+  const { t } = useLanguage();
   const [step,      setStep]      = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
@@ -176,7 +178,7 @@ export default function RegisterDoctor() {
   // ── Success Screen ──────────────────────────────────────────
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "#0f1117" }}>
+      <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "var(--bg-primary)" }}>
         <div className="max-w-md w-full text-center animate-fade-in">
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
             style={{ background: "rgba(251,191,36,0.12)", border: "2px solid rgba(251,191,36,0.3)" }}>
@@ -184,7 +186,7 @@ export default function RegisterDoctor() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             </svg>
           </div>
-          <h1 className="text-2xl font-bold mb-3" style={{ color: "#f1f5f9" }}>Application Submitted!</h1>
+          <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>Application Submitted!</h1>
           <p className="text-sm leading-relaxed mb-4" style={{ color: "#94a3b8" }}>
             Your doctor registration has been submitted and is pending admin review.
             You will be able to login once approved.
@@ -208,11 +210,11 @@ export default function RegisterDoctor() {
   const steps = ["Personal Info", "Professional", "Education"];
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0f1117" }}>
+    <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
       {/* ── Left Panel ── */}
       <div className="hidden lg:flex w-2/5 flex-col justify-between p-16 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%)" }}>
+        style={{ background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)" }}>
         <div className="absolute top-[-80px] left-[-80px] w-[400px] h-[400px] rounded-full opacity-10"
           style={{ background: "radial-gradient(circle, #3b82f6, transparent)" }}/>
         <div className="absolute bottom-[-100px] right-[-60px] w-[350px] h-[350px] rounded-full opacity-10"
@@ -225,7 +227,7 @@ export default function RegisterDoctor() {
                 <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
               </svg>
             </div>
-            <span className="text-white font-bold text-xl tracking-tight">UHCS</span>
+            <span className="font-bold text-xl tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</span>
           </div>
           <h1 className="text-4xl font-bold leading-tight mb-6" style={{ color: "#f1f5f9" }}>
             Join as a<br/><span style={{ color: "#3b82f6" }}>Verified</span><br/>Doctor
@@ -259,7 +261,7 @@ export default function RegisterDoctor() {
                 border: `1px solid ${step === i + 1 ? "rgba(59,130,246,0.4)" : "rgba(59,130,246,0.1)"}`,
               }}>
               <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                style={{ background: step > i + 1 ? "#10b981" : step === i + 1 ? "#3b82f6" : "#2a2d3e", color: "white" }}>
+                style={{ background: step > i + 1 ? "#10b981" : step === i + 1 ? "#3b82f6" : "var(--border)", color: "white" }}>
                 {step > i + 1 ? "✓" : i + 1}
               </div>
               <div className="text-sm font-semibold" style={{ color: step === i + 1 ? "#f1f5f9" : "#64748b" }}>
@@ -278,7 +280,7 @@ export default function RegisterDoctor() {
           <div className="flex gap-2 mb-8 lg:hidden">
             {steps.map((_, i) => (
               <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                style={{ background: step > i ? "#3b82f6" : "#2a2d3e" }}/>
+                style={{ background: step > i ? "#3b82f6" : "var(--border)" }}/>
             ))}
           </div>
 
@@ -329,7 +331,7 @@ export default function RegisterDoctor() {
                   onBlur={() => touch("name")}
                   placeholder="Dr. Rohit Sharma"
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-                  style={{ ...inputStyle, borderColor: fieldError("name") && touched.name ? "#ef4444" : "#2a2d3e" }}
+                  style={{ ...inputStyle, borderColor: fieldError("name") && touched.name ? "#ef4444" : "var(--border)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
                 />
                 {fieldError("name") && touched.name && (
@@ -340,7 +342,7 @@ export default function RegisterDoctor() {
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
-                  Email Address
+                  {t("emailAddress")}
                   <SecureBadge tip="Use a professional email. Admin approval notifications will be sent here." />
                 </label>
                 <div className="relative">
@@ -355,7 +357,7 @@ export default function RegisterDoctor() {
                     onBlur={() => touch("email")}
                     placeholder="doctor@hospital.com"
                     className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all"
-                    style={{ ...inputStyle, borderColor: fieldError("email") && touched.email ? "#ef4444" : "#2a2d3e" }}
+                    style={{ ...inputStyle, borderColor: fieldError("email") && touched.email ? "#ef4444" : "var(--border)" }}
                     onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
                   />
                 </div>
@@ -380,7 +382,7 @@ export default function RegisterDoctor() {
                     onBlur={() => touch("phone")}
                     placeholder="9876543210"
                     className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none transition-all font-mono"
-                    style={{ ...inputStyle, borderColor: fieldError("phone") && touched.phone ? "#ef4444" : "#2a2d3e" }}
+                    style={{ ...inputStyle, borderColor: fieldError("phone") && touched.phone ? "#ef4444" : "var(--border)" }}
                     onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
                   />
                   {/* live digit count */}
@@ -397,7 +399,7 @@ export default function RegisterDoctor() {
               {/* Password */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
-                  Password
+                  {t("password")}
                   <SecureBadge tip="Use 8+ chars with uppercase, number and symbol for best security." />
                 </label>
                 <div className="relative">
@@ -414,7 +416,7 @@ export default function RegisterDoctor() {
                     onBlur={() => touch("password")}
                     placeholder="Min 6 characters"
                     className="w-full pl-11 pr-11 py-3 rounded-xl text-sm outline-none transition-all"
-                    style={{ ...inputStyle, borderColor: fieldError("password") && touched.password ? "#ef4444" : "#2a2d3e" }}
+                    style={{ ...inputStyle, borderColor: fieldError("password") && touched.password ? "#ef4444" : "var(--border)" }}
                     onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)}
@@ -432,7 +434,7 @@ export default function RegisterDoctor() {
                     <div className="flex gap-1 mb-1">
                       {[1,2,3,4].map((i) => (
                         <div key={i} className="flex-1 h-1 rounded-full transition-all"
-                          style={{ background: pwStrength.score >= i ? pwStrength.color : "#2a2d3e" }}/>
+                          style={{ background: pwStrength.score >= i ? pwStrength.color : "var(--border)" }}/>
                       ))}
                     </div>
                     <div className="flex items-center justify-between">

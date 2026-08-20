@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { TableRowSkeleton } from "../../components/common/Skeleton";
+import { useLanguage } from "../../context/LanguageContext";
 
 const qualifications = [
   "MBBS",
@@ -47,54 +48,56 @@ const inputStyle = {
   color: "#f1f5f9",
 };
 
-// ── Verification Badge ────────────────────────────────────────
-function VerificationBadge({ doctor }) {
-  if (doctor.status === "suspended") {
-    return (
-      <span
-        className="text-xs px-2 py-1 rounded-full font-medium"
-        style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
-        ⊘ Suspended
-      </span>
-    );
-  }
-  if (doctor.verificationMethod === "nmc") {
-    return (
-      <span
-        className="text-xs px-2 py-1 rounded-full font-medium"
-        style={{ background: "rgba(59,130,246,0.12)", color: "#3b82f6" }}>
-        ✦ NMC Verified
-      </span>
-    );
-  }
-  if (doctor.verificationMethod === "admin") {
+export default function AdminDoctors() {
+  const { t } = useLanguage();
+
+  // ── Verification Badge (uses t from useLanguage) ─────────────────
+  function VerificationBadge({ doctor }) {
+    if (doctor.status === "suspended") {
+      return (
+        <span
+          className="text-xs px-2 py-1 rounded-full font-medium"
+          style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
+          ⊘ {t('suspended')}
+        </span>
+      );
+    }
+    if (doctor.verificationMethod === "nmc") {
+      return (
+        <span
+          className="text-xs px-2 py-1 rounded-full font-medium"
+          style={{ background: "rgba(59,130,246,0.12)", color: "#3b82f6" }}>
+          ✦ {t('nmcVerified')}
+        </span>
+      );
+    }
+    if (doctor.verificationMethod === "admin") {
+      return (
+        <span
+          className="text-xs px-2 py-1 rounded-full font-medium"
+          style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>
+          ✓ {t('adminVerified')}
+        </span>
+      );
+    }
+    if (doctor.status === "pending") {
+      return (
+        <span
+          className="text-xs px-2 py-1 rounded-full font-medium"
+          style={{ background: "rgba(251,191,36,0.12)", color: "#fbbf24" }}>
+          ◌ {t('pending')}
+        </span>
+      );
+    }
     return (
       <span
         className="text-xs px-2 py-1 rounded-full font-medium"
         style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>
-        ✓ Admin Verified
+        ✓ {t('approved')}
       </span>
     );
   }
-  if (doctor.status === "pending") {
-    return (
-      <span
-        className="text-xs px-2 py-1 rounded-full font-medium"
-        style={{ background: "rgba(251,191,36,0.12)", color: "#fbbf24" }}>
-        ◌ Pending
-      </span>
-    );
-  }
-  return (
-    <span
-      className="text-xs px-2 py-1 rounded-full font-medium"
-      style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>
-      ✓ Approved
-    </span>
-  );
-}
 
-export default function AdminDoctors() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -193,7 +196,7 @@ export default function AdminDoctors() {
   };
 
   const handleDelete = async (id, name) => {
-    if (!confirm(`Delete Dr. ${name}? This cannot be undone.`)) return;
+    if (!confirm(t('deleteConfirm').replace('{name}', name))) return;
     try {
       await api.delete(`/admin/user/${id}`);
       toast.success("Doctor deleted");

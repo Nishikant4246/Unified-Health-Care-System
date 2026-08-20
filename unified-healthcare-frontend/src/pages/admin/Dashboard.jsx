@@ -2,11 +2,12 @@ import { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { AuthContext } from "../../context/AuthContext";
+import { useLanguage } from "../../context/LanguageContext";
 
-const StatCard = ({ title, value, icon, color, delay, subtitle }) => (
+const StatCard = ({ title, value, icon, color, delay, subtitle, liveText }) => (
   <div
     className="p-6 rounded-2xl animate-slide-up"
-    style={{ background: "#1e2130", border: "1px solid #2a2d3e", animationDelay: delay }}
+    style={{ background: "var(--bg-card)", border: "1px solid var(--border)", animationDelay: delay }}
   >
     <div className="flex items-start justify-between mb-4">
       <div className="p-3 rounded-xl" style={{ background: color + "22" }}>
@@ -16,24 +17,24 @@ const StatCard = ({ title, value, icon, color, delay, subtitle }) => (
         className="text-xs px-2 py-1 rounded-full font-medium"
         style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}
       >
-        Live
+        {liveText}
       </span>
     </div>
-    <div className="text-3xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
-      {value ?? <span className="text-lg" style={{ color: "#94a3b8" }}>—</span>}
+    <div className="text-3xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+      {value ?? <span className="text-lg" style={{ color: "var(--text-secondary)" }}>—</span>}
     </div>
-    <div className="text-sm" style={{ color: "#94a3b8" }}>{title}</div>
+    <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{title}</div>
     {subtitle && (
-      <div className="text-xs mt-1" style={{ color: "#64748b" }}>{subtitle}</div>
+      <div className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</div>
     )}
   </div>
 );
 
 const quickActions = [
-  { label: "View All Doctors",   path: "/admin/doctors",         color: "#10b981" },
-  { label: "Pending Approvals",  path: "/admin/pending-doctors", color: "#fbbf24" },
-  { label: "View All Patients",  path: "/admin/patients",        color: "#3b82f6" },
-  { label: "Create Doctor",      path: "/admin/doctors",         color: "#a855f7" },
+  { labelKey: "doctors",         path: "/admin/doctors",         color: "#10b981" },
+  { labelKey: "approvals",       path: "/admin/pending-doctors", color: "#fbbf24" },
+  { labelKey: "patients",        path: "/admin/patients",        color: "#3b82f6" },
+  { labelKey: "createDoctor",    path: "/admin/doctors",         color: "#a855f7" },
 ];
 
 export default function AdminDashboard() {
@@ -76,10 +77,12 @@ export default function AdminDashboard() {
   }, [user]); // ← re-runs when user is set
 
   // Not admin
+  const { t } = useLanguage();
+
   if (user && user.role !== "admin") {
     return (
-      <div className="text-center mt-20 text-lg" style={{ color: "#f1f5f9" }}>
-        Access Denied
+      <div className="text-center mt-20 text-lg" style={{ color: "var(--text-primary)" }}>
+        {t('accessDenied')}
       </div>
     );
   }
@@ -92,9 +95,9 @@ export default function AdminDashboard() {
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 rounded-lg text-sm"
-          style={{ background: "#10b981", color: "#fff" }}
+          style={{ background: "var(--emerald)", color: "#fff" }}
         >
-          Retry
+          {t('retry')}
         </button>
       </div>
     );
@@ -105,10 +108,10 @@ export default function AdminDashboard() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
-          Dashboard Overview
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          {t('dashboardOverview')}
         </h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {new Date().toLocaleDateString("en-IN", {
             weekday: "long", year: "numeric", month: "long", day: "numeric",
           })}
@@ -131,10 +134,10 @@ export default function AdminDashboard() {
               style={{ background: "#fbbf24" }}
             />
             <span className="text-sm font-medium" style={{ color: "#fbbf24" }}>
-              {pendingCount} doctor{pendingCount > 1 ? "s" : ""} waiting for approval
+              {t('pendingDoctorsMsg').replace('{count}', String(pendingCount)).replace('{plural}', pendingCount>1? 's':'')}
             </span>
           </div>
-          <span className="text-xs" style={{ color: "#fbbf24" }}>Review →</span>
+          <span className="text-xs" style={{ color: "#fbbf24" }}>{t('viewAll')}</span>
         </div>
       )}
 
@@ -146,6 +149,7 @@ export default function AdminDashboard() {
           color="#10b981"
           delay="0ms"
           subtitle="Approved & active"
+          liveText={t('live')}
           icon={
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/>
@@ -161,6 +165,7 @@ export default function AdminDashboard() {
           color="#3b82f6"
           delay="80ms"
           subtitle="Registered users"
+          liveText={t('live')}
           icon={
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
@@ -176,6 +181,7 @@ export default function AdminDashboard() {
           color="#a855f7"
           delay="160ms"
           subtitle="Total across all patients"
+          liveText={t('live')}
           icon={
             <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -189,25 +195,26 @@ export default function AdminDashboard() {
 
       {/* Quick Actions */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-4" style={{ color: "#f1f5f9" }}>
-          Quick Actions
+        <h2 className="text-lg font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
+          {t('quickActions')}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {quickActions.map((action) => (
             <button
-              key={action.label}
+              key={action.labelKey}
               onClick={() => navigate(action.path)}
-              className="p-4 rounded-xl text-sm font-medium text-center transition-all relative"
+              className="dashboard-action-card p-4 rounded-xl text-sm font-semibold text-center transition-all relative"
               style={{
-                background: action.color + "18",
-                border: "1px solid " + action.color + "30",
-                color: action.color,
+                background: "var(--bg-card)",
+                border: "1px solid " + action.color + "55",
+                borderLeft: "3px solid " + action.color,
+                color: "var(--text-primary)",
                 cursor: "pointer",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = action.color + "28")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = action.color + "18")}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-card)")}
             >
-              {action.label === "Pending Approvals" && pendingCount > 0 && (
+              {action.labelKey === "approvals" && pendingCount > 0 && (
                 <span
                   className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold"
                   style={{ background: "#fbbf24", color: "#0f1117" }}
@@ -215,7 +222,7 @@ export default function AdminDashboard() {
                   {pendingCount}
                 </span>
               )}
-              {action.label}
+              {t(action.labelKey)}
             </button>
           ))}
         </div>
@@ -224,14 +231,14 @@ export default function AdminDashboard() {
       {/* System Status */}
       <div
         className="p-5 rounded-2xl"
-        style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       >
         <div className="flex items-center gap-2 mb-4">
           <div
             className="w-2 h-2 rounded-full animate-pulse"
             style={{ background: "#10b981" }}
           />
-          <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             System Status
           </span>
         </div>
@@ -243,7 +250,7 @@ export default function AdminDashboard() {
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#10b981" }} />
-              <span className="text-xs" style={{ color: "#94a3b8" }}>{item.label}</span>
+              <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{item.label}</span>
               <span className="text-xs ml-auto" style={{ color: "#10b981" }}>{item.status}</span>
             </div>
           ))}

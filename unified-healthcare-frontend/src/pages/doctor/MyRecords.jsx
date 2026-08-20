@@ -35,10 +35,10 @@ export default function MyRecords() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
           My Records
         </h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           All medical records created by you
         </p>
       </motion.div>
@@ -66,13 +66,13 @@ export default function MyRecords() {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Filter by patient name, ID or diagnosis..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm outline-none"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e", color: "#f1f5f9" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
           />
         </div>
         {!loading && (
           <span
             className="text-xs px-3 py-2 rounded-xl flex-shrink-0"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e", color: "#64748b" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}
           >
             {filtered.length} record{filtered.length !== 1 ? "s" : ""}
           </span>
@@ -86,7 +86,7 @@ export default function MyRecords() {
             <div
               key={i}
               className="rounded-2xl animate-pulse"
-              style={{ background: "#1e2130", height: "88px", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", height: "88px", border: "1px solid var(--border)" }}
             />
           ))}
         </div>
@@ -98,7 +98,7 @@ export default function MyRecords() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center py-16 rounded-2xl"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <div className="text-4xl mb-4">📋</div>
           <p className="text-sm font-medium mb-1" style={{ color: "#94a3b8" }}>
@@ -127,7 +127,7 @@ export default function MyRecords() {
               transition={{ delay: i * 0.05 }}
               className="rounded-2xl overflow-hidden"
               style={{
-                background: "#1e2130",
+                background: "var(--bg-card)",
                 border: "1px solid " + (expanded === record._id ? "#3b82f640" : "#2a2d3e"),
               }}
             >
@@ -148,7 +148,7 @@ export default function MyRecords() {
                     {/* Patient name — clickable to profile */}
                     <button
                       className="font-semibold text-sm hover:underline text-left"
-                      style={{ color: "#f1f5f9" }}
+                      style={{ color: "var(--text-primary)" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate("/doctor/patients/" + record.patient?._id);
@@ -212,12 +212,12 @@ export default function MyRecords() {
                       {/* Diagnosis block */}
                       <div
                         className="p-3 rounded-xl"
-                        style={{ background: "#252837" }}
+                        style={{ background: "var(--bg-hover)" }}
                       >
                         <div className="text-xs mb-1 uppercase tracking-wide" style={{ color: "#64748b" }}>
                           Diagnosis
                         </div>
-                        <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>
+                        <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                           {record.diagnosis}
                         </div>
                       </div>

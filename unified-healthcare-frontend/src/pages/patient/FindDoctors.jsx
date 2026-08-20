@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
+import { useLanguage } from "../../context/LanguageContext";
 
 const injectLeafletCSS = () => {
   if (document.getElementById("leaflet-css")) return;
@@ -61,6 +62,7 @@ const getOSMKeywords = (query) => {
 };
 
 export default function FindDoctors() {
+  const { t } = useLanguage();
   const mapRef         = useRef(null);
   const mapInstanceRef = useRef(null);
   const searchRef      = useRef(null);
@@ -295,8 +297,8 @@ export default function FindDoctors() {
   return (
     <PageTransition>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>Find Nearby Doctors</h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>{t('findNearbyDoctors')}</h1>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           UHCS registered doctors + real hospitals near you
         </p>
       </div>
@@ -305,7 +307,7 @@ export default function FindDoctors() {
       {status === "idle" && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           className="p-6 rounded-2xl"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
 
           <h2 className="text-sm font-semibold mb-4" style={{ color: "#94a3b8" }}>HOW IT WORKS</h2>
           <div className="space-y-3 mb-6">
@@ -324,7 +326,7 @@ export default function FindDoctors() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span style={{ fontSize: "14px" }}>{s.icon}</span>
-                    <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>{s.title}</span>
+                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{s.title}</span>
                   </div>
                   <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{s.desc}</p>
                 </div>
@@ -332,7 +334,7 @@ export default function FindDoctors() {
             ))}
           </div>
 
-          <div className="flex items-center gap-4 mb-5 p-3 rounded-xl flex-wrap" style={{ background: "#252837" }}>
+          <div className="flex items-center gap-4 mb-5 p-3 rounded-xl flex-wrap" style={{ background: "var(--bg-hover)" }}>
             {[
               { color: "#a855f7", label: "UHCS Registered Doctor" },
               { color: "#3b82f6", label: "Real Hospital / Clinic"  },
@@ -359,7 +361,7 @@ export default function FindDoctors() {
                 onFocus={() => setShowSuggestions(true)}
                 placeholder="Search by specialization or name (optional)..."
                 className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-all"
-                style={{ background: "#252837", border: "1px solid #2a2d3e", color: "#f1f5f9" }}
+                style={{ background: "var(--bg-hover)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                 onMouseEnter={(e) => (e.target.style.borderColor = "#3b82f6")}
                 onMouseLeave={(e) => { if (!showSuggestions) e.target.style.borderColor = "#2a2d3e"; }}
               />
@@ -382,7 +384,7 @@ export default function FindDoctors() {
                   initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
                   className="mt-1 rounded-xl overflow-hidden"
-                  style={{ background: "#252837", border: "1px solid #2a2d3e" }}>
+                  style={{ background: "var(--bg-hover)", border: "1px solid var(--border)" }}>
                   <div className="p-2 flex flex-wrap gap-1.5">
                     {filteredSuggestions.map((s) => (
                       <button key={s}
@@ -454,10 +456,10 @@ export default function FindDoctors() {
       {(status === "locating" || status === "loading") && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center py-20 rounded-2xl"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="w-12 h-12 rounded-full border-4 animate-spin mb-4"
             style={{ borderColor: "#2a2d3e", borderTopColor: "#3b82f6" }} />
-          <p className="font-semibold" style={{ color: "#f1f5f9" }}>
+          <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
             {status === "locating" ? "Getting your location..." : "Finding nearby doctors..."}
           </p>
           <p className="text-sm mt-1" style={{ color: "#64748b" }}>
@@ -501,7 +503,7 @@ export default function FindDoctors() {
                 onFocus={() => setShowSuggestions(true)}
                 placeholder="Filter by specialization or name..."
                 className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e", color: "#f1f5f9" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
               />
               {searchQuery && (
                 <button onClick={() => { setSearchQuery(""); setShowSuggestions(false); }}
@@ -519,7 +521,7 @@ export default function FindDoctors() {
                 <motion.div
                   initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
-                  style={{ background: "#1e2130", border: "1px solid #2a2d3e", borderRadius: "12px",
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px",
                            marginTop: "4px", position: "relative", zIndex: 50 }}>
                   <div className="p-2 flex flex-wrap gap-1.5">
                     {filteredSuggestions.map((s) => (
@@ -559,7 +561,7 @@ export default function FindDoctors() {
             </span>
             <button onClick={() => { setStatus("idle"); setSelectedDoctor(null); setSearchQuery(""); }}
               className="ml-auto text-xs px-3 py-1.5 rounded-full transition-all"
-              style={{ background: "#252837", color: "#94a3b8", border: "1px solid #2a2d3e", cursor: "pointer" }}
+              style={{ background: "var(--bg-hover)", color: "var(--text-secondary)", border: "1px solid var(--border)", cursor: "pointer" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "#2a2d3e"; e.currentTarget.style.color = "#f1f5f9"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "#252837"; e.currentTarget.style.color = "#94a3b8"; }}>
               Reset
@@ -578,7 +580,7 @@ export default function FindDoctors() {
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 16 }} className="p-5 rounded-2xl mb-4"
                 style={{
-                  background: "#1e2130",
+                  background: "var(--bg-card)",
                   border: `1px solid ${selectedDoctor.source === "uhcs" ? "rgba(168,85,247,0.4)" : "rgba(59,130,246,0.4)"}`,
                 }}>
                 <div className="flex items-start gap-4">
@@ -591,7 +593,7 @@ export default function FindDoctors() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-bold text-base" style={{ color: "#f1f5f9" }}>
+                      <span className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
                         {selectedDoctor.source === "uhcs" ? `Dr. ${selectedDoctor.name}` : selectedDoctor.name}
                       </span>
                       <span className="text-xs px-2 py-0.5 rounded-full"
@@ -602,7 +604,7 @@ export default function FindDoctors() {
                         {selectedDoctor.source === "uhcs" ? "UHCS Registered" : "Real Hospital"}
                       </span>
                     </div>
-                    <div className="space-y-1 text-sm" style={{ color: "#94a3b8" }}>
+                    <div className="space-y-1 text-sm" style={{ color: "var(--text-secondary)" }}>
                       {selectedDoctor.specialization && <div>🩺 {selectedDoctor.specialization}</div>}
                       {selectedDoctor.hospital       && <div>🏥 {selectedDoctor.hospital}</div>}
                       {selectedDoctor.address        && <div>📍 {selectedDoctor.address}</div>}
@@ -658,9 +660,9 @@ export default function FindDoctors() {
           {/* No results */}
           {filteredUHCS.length === 0 && filteredHospitals.length === 0 && osmStatus !== "loading" && (
             <div className="text-center py-8 rounded-2xl"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <div className="text-4xl mb-3">🔍</div>
-              <p className="font-semibold" style={{ color: "#f1f5f9" }}>
+              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
                 {searchQuery ? `No "${searchQuery}" found nearby` : "No doctors found nearby"}
               </p>
               <p className="text-sm mt-1" style={{ color: "#64748b" }}>

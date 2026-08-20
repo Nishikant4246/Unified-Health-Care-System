@@ -27,8 +27,8 @@ export default function Payments() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>Payment History</h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>All your medical billing records</p>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Payment History</h1>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>All your medical billing records</p>
       </motion.div>
 
       {/* ── Summary cards ── */}
@@ -45,7 +45,7 @@ export default function Payments() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
               className="p-4 rounded-2xl text-center"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               <div className="text-xl font-bold mb-1" style={{ color: s.color }}>{s.value}</div>
               <div className="text-xs" style={{ color: "#64748b" }}>{s.label}</div>
@@ -66,11 +66,11 @@ export default function Payments() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center py-20 rounded-2xl"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <div className="text-5xl mb-4">💳</div>
-          <p className="font-semibold mb-1" style={{ color: "#f1f5f9" }}>No payments yet</p>
-          <p className="text-sm" style={{ color: "#94a3b8" }}>Payment records appear after doctor visits</p>
+          <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No payments yet</p>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Payment records appear after doctor visits</p>
         </motion.div>
       ) : (
         <div className="space-y-3">
@@ -81,7 +81,7 @@ export default function Payments() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
               className="p-5 rounded-2xl flex items-center justify-between"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               <div className="flex items-center gap-4">
                 <div
@@ -94,7 +94,7 @@ export default function Payments() {
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold text-sm" style={{ color: "#f1f5f9" }}>
+                  <div className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
                     {record.diagnosis}
                   </div>
                   <div className="text-xs mt-0.5" style={{ color: "#94a3b8" }}>

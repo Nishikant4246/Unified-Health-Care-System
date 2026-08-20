@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
+import { useLanguage } from "../../context/LanguageContext";
 
 export default function SearchPatient() {
+  const { t } = useLanguage();
   const [query, setQuery]       = useState("");
   const [patients, setPatients] = useState([]);
   const [searched, setSearched] = useState(false);
@@ -13,9 +15,9 @@ export default function SearchPatient() {
   const navigate                = useNavigate();
 
   const inputStyle = {
-    background: "#1e2130",
-    border: "1px solid #2a2d3e",
-    color: "#f1f5f9",
+    background: "var(--bg-card)",
+    border: "1px solid var(--border)",
+    color: "var(--text-primary)",
   };
 
   const handleSearch = async (e) => {
@@ -55,10 +57,10 @@ export default function SearchPatient() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>
-          Search Patient
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          {t('searchPatient') }
         </h1>
-        <p className="text-sm" style={{ color: "#94a3b8" }}>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           Find a patient by name or Patient ID (e.g. PAT0001)
         </p>
       </motion.div>
@@ -99,9 +101,9 @@ export default function SearchPatient() {
           whileTap={{ scale: 0.97 }}
           className="px-6 py-3 rounded-xl text-sm font-semibold flex-shrink-0 transition-all"
           style={{
-            background: loading || !query.trim() ? "#1e2130" : "#10b981",
-            color:      loading || !query.trim() ? "#64748b"  : "white",
-            border: "1px solid " + (loading || !query.trim() ? "#2a2d3e" : "#10b981"),
+            background: loading || !query.trim() ? "var(--bg-card)" : "#10b981",
+            color:      loading || !query.trim() ? "var(--text-secondary)"  : "white",
+            border: "1px solid " + (loading || !query.trim() ? "var(--border)" : "#10b981"),
             cursor: loading || !query.trim() ? "not-allowed" : "pointer",
           }}
         >
@@ -114,7 +116,7 @@ export default function SearchPatient() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             className="px-4 py-3 rounded-xl text-sm transition-all"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e", color: "#94a3b8", cursor: "pointer" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer" }}
           >
             Clear
           </motion.button>
@@ -128,7 +130,7 @@ export default function SearchPatient() {
             <div
               key={i}
               className="rounded-2xl animate-pulse"
-              style={{ background: "#1e2130", height: "88px", border: "1px solid #2a2d3e" }}
+              style={{ background: "var(--bg-card)", height: "88px", border: "1px solid var(--border)" }}
             />
           ))}
         </div>
@@ -171,13 +173,13 @@ export default function SearchPatient() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.07 }}
                 className="p-5 rounded-2xl transition-all"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.borderColor = "#10b98150";
-                  e.currentTarget.style.background   = "#1e2130";
+                  e.currentTarget.style.background   = "var(--bg-card)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#2a2d3e";
+                  e.currentTarget.style.borderColor = "var(--border)";
                 }}
               >
                 {/* Top row */}
@@ -191,7 +193,7 @@ export default function SearchPatient() {
                       {patient.name?.[0]?.toUpperCase()}
                     </div>
                     <div>
-                      <h2 className="font-bold text-base mb-0.5" style={{ color: "#f1f5f9" }}>
+                      <h2 className="font-bold text-base mb-0.5" style={{ color: "var(--text-primary)" }}>
                         {patient.name}
                       </h2>
                       <div className="flex items-center gap-2 flex-wrap">
@@ -247,10 +249,10 @@ export default function SearchPatient() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="p-10 rounded-2xl text-center"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <div className="text-4xl mb-3">🔍</div>
-          <p className="text-sm font-medium mb-1" style={{ color: "#f1f5f9" }}>No patient found</p>
+          <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No patient found</p>
           <p className="text-xs" style={{ color: "#64748b" }}>
             Try a different name or Patient ID
           </p>
@@ -264,7 +266,7 @@ export default function SearchPatient() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
           className="p-8 rounded-2xl text-center"
-          style={{ background: "#1e2130", border: "1px dashed #2a2d3e" }}
+          style={{ background: "var(--bg-card)", border: "1px dashed var(--border)" }}
         >
           <div className="text-3xl mb-3">👤</div>
           <p className="text-sm" style={{ color: "#64748b" }}>

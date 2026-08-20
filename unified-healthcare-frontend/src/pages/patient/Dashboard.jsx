@@ -4,13 +4,14 @@ import { motion } from "framer-motion";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
+import { useLanguage } from "../../context/LanguageContext";
 
 // ─── Golden Design Tokens ──────────────────────────────────────
 const GOLD       = "#C9A84C";
 const GOLD_LIGHT = "#F0D98C";
 const GOLD_DARK  = "#A07830";
-const NAVY       = "#0D1B2A";
-const NAVY_MID   = "#1A2E45";
+const NAVY       = "var(--bg-secondary)";
+const NAVY_MID   = "var(--bg-card)";
 
 const cardVariants = {
   hidden:   { opacity: 0, y: 20 },
@@ -22,6 +23,7 @@ const cardVariants = {
 
 export default function PatientDashboard() {
   const { user }  = useContext(AuthContext);
+  const { t }     = useLanguage();
   const navigate  = useNavigate();
   const [stats,   setStats]   = useState(null);
   const [recent,  setRecent]  = useState([]);
@@ -41,14 +43,14 @@ export default function PatientDashboard() {
   }, []);
 
   if (!user) return (
-    <div className="text-center mt-20" style={{ color: "#f1f5f9" }}>Loading...</div>
+    <div className="text-center mt-20" style={{ color: "var(--text-primary)" }}>{t('loading')}</div>
   );
 
   const actions = [
-    { label: "Medical Timeline", desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "🏥" },
-    { label: "Upload Report",    desc: "Import past medical documents",      path: "/patient/upload-report", color: "#10b981", icon: "📎" },
-    { label: "Payment History",  desc: "View all medical bills",             path: "/patient/payments",      color: "#f59e0b", icon: "💳" },
-    { label: "My Profile",       desc: "Update your personal details",       path: "/patient/profile",       color: "#64748b", icon: "👤" },
+    { label: t('medicalTimeline'), desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "🏥" },
+    { label: t('uploadReport'),    desc: "Import past medical documents",      path: "/patient/upload-report", color: "#10b981", icon: "📎" },
+    { label: t('payments'),        desc: "View all medical bills",             path: "/patient/payments",      color: "#f59e0b", icon: "💳" },
+    { label: t('profile'),         desc: "Update your personal details",       path: "/patient/profile",       color: "#64748b", icon: "👤" },
   ];
 
   return (
@@ -59,7 +61,7 @@ export default function PatientDashboard() {
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6 p-6 rounded-2xl relative overflow-hidden"
-        style={{ background: "#1e2130", border: "1px solid rgba(168,85,247,0.25)" }}
+        style={{ background: "var(--bg-card)", border: "1px solid rgba(168,85,247,0.25)" }}
       >
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
@@ -74,8 +76,8 @@ export default function PatientDashboard() {
               {user?.name?.[0]?.toUpperCase()}
             </motion.div>
             <div>
-              <p className="text-xs mb-0.5" style={{ color: "#94a3b8" }}>Welcome back</p>
-              <h1 className="text-xl font-bold" style={{ color: "#f1f5f9" }}>{user.name}</h1>
+              <p className="text-xs mb-0.5" style={{ color: "#94a3b8" }}>{t('welcomeBack').replace('{name}', '')}</p>
+              <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{user.name}</h1>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-xs font-mono px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7" }}>
@@ -110,7 +112,7 @@ export default function PatientDashboard() {
             key={stat.label}
             custom={i} variants={cardVariants} initial="hidden" animate="visible"
             className="p-4 rounded-2xl text-center"
-            style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <div className="text-2xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
             <div className="text-xs" style={{ color: "#64748b" }}>{stat.label}</div>
@@ -170,8 +172,8 @@ export default function PatientDashboard() {
               </p>
               {/* Title */}
               <div className="flex items-center gap-2">
-                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#FFFFFF", letterSpacing: "0.3px" }}>
-                  Find Nearby Doctors
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--text-primary)", letterSpacing: "0.3px" }}>
+                    {t('findNearbyDoctors')}
                 </h3>
                 <span style={{
                   fontSize: "10px", padding: "2px 8px", borderRadius: "20px", fontWeight: 600,
@@ -181,7 +183,7 @@ export default function PatientDashboard() {
                   NEW
                 </span>
               </div>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "var(--text-secondary)" }}>
                 UHCS registered doctors &amp; real hospitals near you
               </p>
             </div>
@@ -204,7 +206,7 @@ export default function PatientDashboard() {
         <div style={{ background: "#FAFAF7", padding: "16px 28px 20px" }}>
           <div className="flex items-center gap-2 flex-wrap">
             {[
-              { step: "", label: " Click to get Direction" },
+            { step: "", label: t('clickToGetDirection') },
             ].map((s, i) => (
               <div key={i} className="flex items-center gap-1.5">
                 <div style={{
@@ -231,15 +233,15 @@ export default function PatientDashboard() {
           <div className="flex items-center gap-4 mt-3 flex-wrap">
             <div className="flex items-center gap-1.5">
               <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#a855f7" }} />
-              <span style={{ fontSize: "11px", color: "#718096" }}>UHCS Doctors</span>
+            <span style={{ fontSize: "11px", color: "#718096" }}>{t('uhcsDoctors')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#3b82f6" }} />
-              <span style={{ fontSize: "11px", color: "#718096" }}>Real Hospitals</span>
+            <span style={{ fontSize: "11px", color: "#718096" }}>{t('realHospitals')}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10b981" }} />
-              <span style={{ fontSize: "11px", color: "#718096" }}>Your Location</span>
+            <span style={{ fontSize: "11px", color: "#718096" }}>{t('yourLocation')}</span>
             </div>
           </div>
         </div>
@@ -257,14 +259,14 @@ export default function PatientDashboard() {
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="p-5 rounded-2xl mb-6"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold" style={{ color: "#f1f5f9" }}>Recent Visits</span>
+            <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t('recentVisits')}</span>
             <button onClick={() => navigate("/patient/timeline")}
               className="text-xs px-3 py-1 rounded-lg"
               style={{ background: "#a855f718", color: "#a855f7", border: "1px solid #a855f730" }}>
-              Full Timeline →
+                          {t('fullTimeline')}
             </button>
           </div>
           <div className="space-y-2">
@@ -273,7 +275,7 @@ export default function PatientDashboard() {
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.35 + i * 0.06 }}
                 className="flex items-center justify-between p-3 rounded-xl"
-                style={{ background: "#252837" }}
+                style={{ background: "var(--bg-hover)" }}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
@@ -281,7 +283,7 @@ export default function PatientDashboard() {
                     {rec.doctor?.name?.[0]?.toUpperCase() || "?"}
                   </div>
                   <div>
-                    <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>{rec.diagnosis}</div>
+                    <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{rec.diagnosis}</div>
                     <div className="text-xs" style={{ color: "#64748b" }}>
                       {rec.doctor ? "Dr. " + rec.doctor.name : "Self Upload"} ·{" "}
                       {new Date(rec.visitDate || rec.createdAt).toLocaleDateString("en-IN")}
@@ -308,15 +310,15 @@ export default function PatientDashboard() {
               whileHover={{ scale: 1.02, borderColor: action.color + "60" }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(action.path)}
-              className="p-5 rounded-2xl text-left transition-all"
-              style={{ background: "#1e2130", border: "1px solid #2a2d3e", cursor: "pointer" }}
+              className="dashboard-action-card p-5 rounded-2xl text-left transition-all"
+              style={{ background: "var(--bg-card)", border: "1px solid " + action.color + "55", borderLeft: "3px solid " + action.color, cursor: "pointer" }}
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
                   style={{ background: action.color + "18" }}>
                   {action.icon}
                 </div>
-                <div className="font-semibold text-sm" style={{ color: "#f1f5f9" }}>{action.label}</div>
+                <div className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{action.label}</div>
               </div>
               <div className="text-xs ml-12" style={{ color: "#64748b" }}>{action.desc}</div>
             </motion.button>

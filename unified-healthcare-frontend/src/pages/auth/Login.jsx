@@ -3,6 +3,8 @@ import { AuthContext } from "../../context/AuthContext";
 import { Link } from "react-router-dom";
 import nishikantImg from "../../assets/nishikant.jpg";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "../../context/LanguageContext";
+import { useTheme } from "../../context/ThemeContext";
 
 // ─── Shared animation variants ───────────────────────────────────────────────
 const fadeUp = {
@@ -52,6 +54,8 @@ export default function Login() {
   const [showContact,   setShowContact]   = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
   const [aboutTab,      setAboutTab]      = useState("uhcs");
+  const { t, lang, setLang } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -127,9 +131,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0f1117" }}>
+    <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
-      {/* ══════════════════ EMERGENCY MODAL ══════════════════ */}
+          <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8, alignItems: "center", zIndex: 60 }}>
+            <select value={lang} onChange={(e) => setLang(e.target.value)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "6px 8px", borderRadius: 8 }}>
+              <option value="en">{t('languageEnglish')}</option>
+              <option value="mr">{t('languageMarathi')}</option>
+            </select>
+            <button onClick={toggleTheme} title="Toggle theme" style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid var(--border)", background: "transparent", color: "var(--text-secondary)", cursor: "pointer" }}>
+              {theme === 'dark' ? '🌙' : '☀️'}
+            </button>
+          </div>
+
+          {/* ══════════════════ EMERGENCY MODAL ══════════════════ */}
       <AnimatePresence>
         {showEmergency && (
           <motion.div
@@ -141,7 +155,7 @@ export default function Login() {
               onClick={e => e.stopPropagation()}
               style={{
                 width: "100%", maxWidth: 420,
-                background: "#0f1117",
+                              background: "var(--bg-card)",
                 border: "1px solid rgba(239,68,68,0.25)",
                 borderRadius: 18, padding: "28px 24px",
                 boxShadow: "0 25px 80px rgba(239,68,68,0.12)",
@@ -160,8 +174,8 @@ export default function Login() {
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
                   }}
                 >🚨</motion.div>
-                <div style={{ color: "#f87171", fontWeight: 800, fontSize: 18 }}>Emergency Help</div>
-                <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>Call immediately in case of emergency</div>
+                <div style={{ color: "#f87171", fontWeight: 800, fontSize: 18 }}>{t('emergencyHelp')}</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 4 }}>{t('tapToCall')}</div>
               </div>
 
               <motion.div
@@ -169,11 +183,11 @@ export default function Login() {
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
               >
                 {[
-                  { icon: "🏥", label: "National Emergency", number: "112", color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
-                  { icon: "🚑", label: "Ambulance",          number: "108", color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
-                  { icon: "🩺", label: "Medical Helpline",   number: "104", color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
-                  { icon: "👮", label: "Police",             number: "100", color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
-                  { icon: "🔥", label: "Fire Brigade",       number: "101", color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
+                  { icon: "🏥", label: t("emergencyNational"), number: "112", color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
+                  { icon: "🚑", label: t("ambulance"),          number: "108", color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
+                  { icon: "🩺", label: t("medicalHelpline"),   number: "104", color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
+                  { icon: "👮", label: t("police"),             number: "100", color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
+                  { icon: "🔥", label: t("fireBrigade"),       number: "101", color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
                 ].map(e => (
                   <motion.a
                     key={e.number} href={`tel:${e.number}`}
@@ -189,8 +203,8 @@ export default function Login() {
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <span style={{ fontSize: 20 }}>{e.icon}</span>
                       <div>
-                        <div style={{ color: "#e2e8f0", fontWeight: 600, fontSize: 13 }}>{e.label}</div>
-                        <div style={{ color: "#64748b", fontSize: 11, marginTop: 1 }}>Tap to call</div>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 13 }}>{e.label}</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 11, marginTop: 1 }}>{t("tapToCallShort")}</div>
                       </div>
                     </div>
                     <div style={{ color: e.color, fontWeight: 800, fontSize: 20, fontFamily: "monospace" }}>{e.number}</div>
@@ -198,8 +212,8 @@ export default function Login() {
                 ))}
               </motion.div>
 
-              <p style={{ color: "#374151", fontSize: 11, textAlign: "center", marginTop: 16, marginBottom: 0 }}>
-                Stay calm · Call the nearest number · Help is on the way
+              <p style={{ color: "var(--text-secondary)", fontWeight: 600, fontSize: 11, textAlign: "center", marginTop: 16, marginBottom: 0 }}>
+                {t("stayCalmFull")}
               </p>
             </motion.div>
           </motion.div>
@@ -218,7 +232,7 @@ export default function Login() {
               onClick={e => e.stopPropagation()}
               style={{
                 width: "100%", maxWidth: 800, maxHeight: "90vh",
-                background: "#0f1117",
+                background: "var(--modal-bg)",
                 border: "1px solid rgba(16,185,129,0.18)",
                 borderRadius: 20, overflowY: "auto",
                 boxShadow: "0 30px 90px rgba(0,0,0,0.65)",
@@ -233,14 +247,14 @@ export default function Login() {
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}>
                 {[
-                  { key: "uhcs", label: "🏥  About UHCS" },
-                  { key: "dev",  label: "👨‍💻  Developer"  },
+                  { key: "uhcs", label: `🏥  ${t("aboutUHCS")}` },
+                  { key: "dev",  label: `👨‍💻  ${t("developer")}`  },
                 ].map(t => (
                   <button key={t.key} onClick={() => setAboutTab(t.key)} style={{
                     padding: "10px 22px", borderRadius: "10px 10px 0 0",
                     border: "none", cursor: "pointer", fontWeight: 600, fontSize: 13,
                     background: aboutTab === t.key ? "rgba(16,185,129,0.1)" : "transparent",
-                    color: aboutTab === t.key ? "#10b981" : "#64748b",
+                    color: aboutTab === t.key ? "#10b981" : "var(--text-secondary)",
                     borderBottom: aboutTab === t.key ? "2px solid #10b981" : "2px solid transparent",
                     transition: "all 0.2s",
                   }}>{t.label}</button>
@@ -259,7 +273,7 @@ export default function Login() {
                     <motion.div
                       variants={fadeUp} initial="hidden" animate="show"
                       style={{
-                        background: "linear-gradient(135deg,#0d1f14,#0a1a10)",
+                        background: "linear-gradient(135deg,var(--bg-secondary),var(--bg-card))",
                         border: "1px solid rgba(16,185,129,0.15)",
                         borderRadius: 16, padding: "26px 22px", marginBottom: 24,
                       }}
@@ -281,11 +295,11 @@ export default function Login() {
                           </svg>
                         </motion.div>
                         <div>
-                          <div style={{ color: "#f1f5f9", fontWeight: 800, fontSize: 19 }}>Unified Healthcare System</div>
+                          <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 19 }}>Unified Healthcare System</div>
                           <div style={{ color: "#10b981", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>UHCS · v2.0</div>
                         </div>
                       </div>
-                      <p style={{ color: "#94a3b8", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
+                      <p style={{ color: "var(--text-secondary)", fontSize: 14, lineHeight: 1.8, margin: 0 }}>
                         UHCS digitizes and centralizes patient medical history across hospitals and clinics.
                         Patients often visit multiple doctors across different clinics, but their records remain
                         fragmented. UHCS solves this with a <strong style={{ color: "#10b981" }}>Universal Patient ID and Doctor ID</strong> — allowing
@@ -294,7 +308,7 @@ export default function Login() {
                       </p>
                     </motion.div>
 
-                    <h3 style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 700, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>Why UHCS?</h3>
+                    <h3 style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 700, marginBottom: 14, textTransform: "uppercase", letterSpacing: "0.08em" }}>Why UHCS?</h3>
                     <motion.div
                       variants={stagger} initial="hidden" animate="show"
                       style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
@@ -313,14 +327,14 @@ export default function Login() {
                           transition={{ type: "spring", stiffness: 300, damping: 20 }}
                           style={{
                             padding: "14px 16px", borderRadius: 12,
-                            background: "rgba(255,255,255,0.02)",
+                            background: "var(--bg-hover)",
                             border: "1px solid rgba(16,185,129,0.1)",
                             cursor: "default",
                           }}
                         >
                           <div style={{ fontSize: 20, marginBottom: 6 }}>{c.icon}</div>
-                          <div style={{ color: "#e2e8f0", fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{c.h}</div>
-                          <div style={{ color: "#64748b", fontSize: 12, lineHeight: 1.6 }}>{c.b}</div>
+                          <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{c.h}</div>
+                          <div style={{ color: "var(--text-secondary)", fontSize: 12, lineHeight: 1.6 }}>{c.b}</div>
                         </motion.div>
                       ))}
                     </motion.div>
@@ -338,7 +352,7 @@ export default function Login() {
                     <motion.div
                       variants={scaleIn} initial="hidden" animate="show"
                       style={{
-                        background: "linear-gradient(135deg,#1a1400 0%,#241c00 45%,#1e1600 100%)",
+                        background: "linear-gradient(135deg,var(--bg-secondary) 0%,var(--bg-card) 100%)",
                         border: "1px solid rgba(212,160,23,0.35)",
                         borderRadius: 18, padding: "30px 26px",
                         position: "relative", overflow: "hidden",
@@ -355,7 +369,7 @@ export default function Login() {
                           style={{
                             width: 88, height: 88, borderRadius: 18, flexShrink: 0,
                             border: "2px solid rgba(212,160,23,0.45)",
-                            overflow: "hidden", background: "#241c00",
+                            overflow: "hidden", background: "var(--bg-hover)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             boxShadow: "0 4px 20px rgba(212,160,23,0.18)",
                           }}
@@ -374,11 +388,11 @@ export default function Login() {
                           <div style={{ color: "#d4a017", fontSize: 12, fontWeight: 600, marginTop: 5, letterSpacing: "0.07em" }}>
                             Software Engineer · Full Stack Developer
                           </div>
-                          <div style={{ color: "#78716c", fontSize: 12, marginTop: 4 }}>📍 Pune, Maharashtra, India</div>
+                          <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 4 }}>📍 Pune, Maharashtra, India</div>
                         </div>
                       </div>
 
-                      <p style={{ color: "#a8a29e", fontSize: 13, lineHeight: 1.8, marginTop: 20, position: "relative", zIndex: 1 }}>
+                      <p style={{ color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.8, marginTop: 20, position: "relative", zIndex: 1 }}>
                         I'm Nishikant Vitthal Kshirsagar, a passionate Software Developer who enjoys building clean, user-friendly web applications that solve real problems. I like taking ideas from concept to fully working products and continuously improving my skills through hands-on development. One of my key projects is the Unified Healthcare System (UHCS), which I designed and developed end-to-end to streamline interactions between patients, doctors, and administrators through an intuitive and efficient platform.
                       </p>
 
@@ -424,7 +438,7 @@ export default function Login() {
               onClick={e => e.stopPropagation()}
               style={{
                 width: "100%", maxWidth: 380,
-                background: "#0f1117",
+                background: "var(--modal-bg)",
                 border: "1px solid rgba(16,185,129,0.2)",
                 borderRadius: 18, padding: "28px 24px",
                 boxShadow: "0 25px 80px rgba(0,0,0,0.6)",
@@ -447,8 +461,8 @@ export default function Login() {
                     <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                   </svg>
                 </motion.div>
-                <div style={{ color: "#f1f5f9", fontWeight: 700, fontSize: 17 }}>Contact Us</div>
-                <div style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}>UHCS Support · Get in touch</div>
+                <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 17 }}>{t("contactUs")}</div>
+                <div style={{ color: "var(--text-secondary)", fontSize: 12, marginTop: 4 }}>{t("contactUsSupport")}</div>
               </div>
 
               <motion.div
@@ -476,15 +490,15 @@ export default function Login() {
                       </svg>
                     </div>
                     <div>
-                      <div style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.label}</div>
-                      <div style={{ color: "#f1f5f9", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{c.email}</div>
+                      <div style={{ color: "var(--text-secondary)", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{c.label}</div>
+                      <div style={{ color: "var(--text-primary)", fontSize: 13, fontWeight: 600, marginTop: 2 }}>{c.email}</div>
                     </div>
                   </motion.a>
                 ))}
               </motion.div>
 
-              <p style={{ color: "#374151", fontSize: 11, textAlign: "center", marginTop: 18, marginBottom: 0 }}>
-                We typically respond within 12 hours
+              <p style={{ color: "var(--text-secondary)", fontSize: 11, textAlign: "center", marginTop: 18, marginBottom: 0 }}>
+                {t("respondWithin")}
               </p>
             </motion.div>
           </motion.div>
@@ -495,7 +509,7 @@ export default function Login() {
       <motion.div
         variants={slideLeft} initial="hidden" animate="show"
         className="hidden lg:flex w-1/2 flex-col justify-between p-14 relative overflow-hidden"
-        style={{ background: "linear-gradient(160deg,#0f1117 0%,#0d1f14 60%,#0f1117 100%)" }}
+        style={{ background: "linear-gradient(160deg,var(--bg-primary) 0%,var(--bg-secondary) 60%,var(--bg-primary) 100%)" }}
       >
         <div className="absolute top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle,rgba(16,185,129,0.07) 0%,transparent 70%)" }} />
@@ -520,7 +534,7 @@ export default function Login() {
               </svg>
             </motion.div>
             <div>
-              <div className="text-white font-bold text-lg tracking-tight">UHCS</div>
+              <div className="font-bold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</div>
               <div className="text-xs" style={{ color: "#4b7a62" }}>Unified Healthcare System</div>
             </div>
           </motion.div>
@@ -528,7 +542,7 @@ export default function Login() {
           <motion.h1
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="text-4xl font-bold leading-tight mb-3" style={{ color: "#f1f5f9" }}
+            className="text-4xl font-bold leading-tight mb-3" style={{ color: "var(--text-primary)" }}
           >
             One Platform.<br />
             <span style={{ color: "#10b981" }}>Complete Care.</span>
@@ -537,7 +551,7 @@ export default function Login() {
           <motion.p
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.26, duration: 0.45 }}
-            className="text-sm leading-relaxed mb-8" style={{ color: "#64748b", maxWidth: "380px" }}
+            className="text-sm leading-relaxed mb-8" style={{ color: "var(--text-secondary)", maxWidth: "380px" }}
           >
             Digitizing hospital and clinic operations by unifying patient medical history
             across multiple providers — ensuring continuity of care, reducing duplicate
@@ -561,8 +575,8 @@ export default function Login() {
                   {f.icon}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold mb-0.5" style={{ color: "#e2e8f0" }}>{f.title}</div>
-                  <div className="text-xs leading-relaxed" style={{ color: "#64748b" }}>{f.desc}</div>
+                  <div className="text-sm font-semibold mb-0.5" style={{ color: "var(--text-primary)" }}>{f.title}</div>
+                  <div className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{f.desc}</div>
                 </div>
               </motion.div>
             ))}
@@ -588,7 +602,7 @@ export default function Login() {
                 className="text-center"
               >
                 <div className="text-xl font-bold" style={{ color: "#10b981" }}>{s.value}</div>
-                <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>{s.label}</div>
+                <div className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{s.label}</div>
               </motion.div>
             ))}
           </div>
@@ -671,21 +685,21 @@ export default function Login() {
                 <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
               </svg>
             </div>
-            <span className="font-bold text-base" style={{ color: "#f1f5f9" }}>UHCS</span>
+            <span className="font-bold text-base" style={{ color: "var(--text-primary)" }}>UHCS</span>
           </motion.div>
 
           <motion.div variants={fadeUp} className="flex items-center gap-3 mb-4">
             <div className="w-6 h-px" style={{ background: "#10b981" }} />
             <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#10b981" }}>
-              Secure Access
+              {t("secureAccess")}
             </span>
           </motion.div>
 
-          <motion.h2 variants={fadeUp} className="text-4xl font-black mb-3" style={{ color: "#f1f5f9", lineHeight: 1.15 }}>
-            Welcome back
+          <motion.h2 variants={fadeUp} className="text-4xl font-black mb-3" style={{ color: "var(--text-primary)", lineHeight: 1.15 }}>
+            {t("welcomeBackLogin")}
           </motion.h2>
-          <motion.p variants={fadeUp} className="text-sm leading-relaxed mb-8" style={{ color: "#64748b" }}>
-            Sign in to access your unified health records, appointments, and care history.
+          <motion.p variants={fadeUp} className="text-sm leading-relaxed mb-8" style={{ color: "var(--text-secondary)" }}>
+            {t("loginDescription")}
           </motion.p>
 
           <AnimatePresence>
@@ -707,20 +721,20 @@ export default function Login() {
 
           <motion.form variants={fadeUp} onSubmit={handleSubmit} className="space-y-4 mb-6" autoComplete="on">
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#94a3b8" }}>Email address</label>
+              <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>{t("emailAddress")}</label>
               <input
                 type="email" name="email" autoComplete="email"
                 value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com" required
                 className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all"
-                style={{ background: "#1a1d2e", border: "1px solid #252837", color: "#f1f5f9" }}
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                 onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                 onBlur={(e)  => (e.target.style.borderColor = "#252837")}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#94a3b8" }}>Password</label>
+              <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>{t("password")}</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
@@ -728,13 +742,13 @@ export default function Login() {
                   value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" required
                   className="w-full px-4 py-3.5 pr-12 rounded-2xl text-sm outline-none transition-all"
-                  style={{ background: "#1a1d2e", border: "1px solid #252837", color: "#f1f5f9" }}
+                  style={{ background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                   onFocus={(e) => (e.target.style.borderColor = "#10b981")}
                   onBlur={(e)  => (e.target.style.borderColor = "#252837")}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute inset-y-0 right-0 flex items-center pr-4"
-                  style={{ color: "#64748b" }}>
+                  style={{ color: "var(--text-secondary)" }}>
                   {showPass ? (
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
@@ -769,11 +783,11 @@ export default function Login() {
                   <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="3" strokeDasharray="32" strokeDashoffset="12"/>
                   </svg>
-                  Signing in...
+                  {t("signingIn")}
                 </>
               ) : (
                 <>
-                  Sign In
+                  {t("signIn")}
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path d="M5 12h14M12 5l7 7-7 7"/>
                   </svg>
@@ -784,7 +798,7 @@ export default function Login() {
 
           <motion.div variants={fadeUp} className="flex items-center gap-3 mb-5">
             <div className="flex-1 h-px" style={{ background: "#1e2130" }} />
-            <span className="text-xs" style={{ color: "#64748b" }}>Don't have an account?</span>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-secondary)" }}>{t("noAccount")}</span>
             <div className="flex-1 h-px" style={{ background: "#1e2130" }} />
           </motion.div>
 
@@ -792,15 +806,15 @@ export default function Login() {
             <motion.div variants={fadeUp}>
               <Link to="/register"
                 className="flex items-center gap-4 p-4 rounded-2xl transition-all"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#10b98150")}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                   style={{ background: "rgba(168,85,247,0.1)" }}>🧑‍⚕️</div>
                 <div className="flex-1">
-                  <div className="text-sm font-bold" style={{ color: "#f1f5f9" }}>New Patient</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>Create your patient account</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{t("newPatient")}</div>
+                  <div className="text-xs mt-0.5 font-semibold" style={{ color: "var(--text-secondary)" }}>{t("createPatientAccount")}</div>
                 </div>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth={2}>
                   <path d="M9 18l6-6-6-6"/>
@@ -811,15 +825,15 @@ export default function Login() {
             <motion.div variants={fadeUp}>
               <Link to="/register-doctor"
                 className="flex items-center gap-4 p-4 rounded-2xl transition-all"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#3b82f650")}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
               >
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
                   style={{ background: "rgba(59,130,246,0.1)" }}>👨‍⚕️</div>
                 <div className="flex-1">
-                  <div className="text-sm font-bold" style={{ color: "#f1f5f9" }}>Doctor / Provider</div>
-                  <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>Apply for practitioner access</div>
+                  <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{t("doctorProvider")}</div>
+                  <div className="text-xs mt-0.5 font-semibold" style={{ color: "var(--text-secondary)" }}>{t("practitionerAccess")}</div>
                 </div>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth={2}>
                   <path d="M9 18l6-6-6-6"/>

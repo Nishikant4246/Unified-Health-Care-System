@@ -59,8 +59,8 @@ export default function AdminPatients() {
     <PageTransition>
       <div className="flex items-center justify-between mb-8">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold mb-1" style={{ color: "#f1f5f9" }}>Manage Patients</h1>
-          <p className="text-sm" style={{ color: "#94a3b8" }}>{patients.length} patients registered</p>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>Manage Patients</h1>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{patients.length} patients registered</p>
         </motion.div>
 
         <motion.input
@@ -71,7 +71,7 @@ export default function AdminPatients() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-4 py-2 rounded-xl text-sm outline-none w-64"
-          style={{ background: "#1e2130", border: "1px solid #2a2d3e", color: "#f1f5f9" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
           onFocus={(e) => (e.target.style.borderColor = "#3b82f6")}
           onBlur={(e) => (e.target.style.borderColor = "#2a2d3e")}
         />
@@ -80,14 +80,14 @@ export default function AdminPatients() {
       <div className="flex gap-6">
         {/* Patients Table */}
         <div className={`transition-all duration-300 ${selectedPatient ? "w-1/2" : "w-full"}`}>
-          <div className="rounded-2xl overflow-hidden" style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: "1px solid #2a2d3e" }}>
                     {["Patient", "ID", "Phone", "Registered", "Actions"].map((h) => (
                       <th key={h} className="text-left px-5 py-4 text-xs font-semibold uppercase tracking-wider"
-                        style={{ color: "#94a3b8" }}>{h}</th>
+                        style={{ color: "var(--text-secondary)" }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -136,8 +136,8 @@ export default function AdminPatients() {
                               {p.name?.[0]?.toUpperCase()}
                             </div>
                             <div>
-                              <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>{p.name}</div>
-                              <div className="text-xs" style={{ color: "#94a3b8" }}>{p.email}</div>
+                              <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{p.name}</div>
+                              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>{p.email}</div>
                             </div>
                           </div>
                         </td>
@@ -193,11 +193,11 @@ export default function AdminPatients() {
               className="w-1/2"
             >
               <div className="rounded-2xl overflow-hidden sticky top-0"
-                style={{ background: "#1e2130", border: "1px solid #2a2d3e" }}>
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
 
                 {/* Profile Header */}
                 <div className="p-6 relative"
-                  style={{ background: "linear-gradient(135deg, #1e2130 0%, #1a1f2e 100%)", borderBottom: "1px solid #2a2d3e" }}>
+                  style={{ background: "linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%)", borderBottom: "1px solid var(--border)" }}>
                   <button
                     onClick={() => { setSelectedPatient(null); setProfile(null); }}
                     className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-sm"
@@ -211,9 +211,9 @@ export default function AdminPatients() {
                       {selectedPatient.name?.[0]?.toUpperCase()}
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold" style={{ color: "#f1f5f9" }}>{selectedPatient.name}</h2>
+                      <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>{selectedPatient.name}</h2>
                       <p className="text-xs font-mono mt-1" style={{ color: "#3b82f6" }}>{selectedPatient.uniqueId}</p>
-                      <p className="text-xs mt-1" style={{ color: "#94a3b8" }}>{selectedPatient.email}</p>
+                      <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{selectedPatient.email}</p>
                     </div>
                   </div>
                 </div>
@@ -236,16 +236,16 @@ export default function AdminPatients() {
                           { label: "Registered", value: new Date(profile.patient.createdAt).toLocaleDateString("en-IN") },
                           { label: "Patient ID", value: profile.patient.uniqueId },
                         ].map((item) => (
-                          <div key={item.label} className="p-3 rounded-xl" style={{ background: "#252837" }}>
-                            <div className="text-xs mb-1" style={{ color: "#64748b" }}>{item.label}</div>
-                            <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>{item.value}</div>
+                          <div key={item.label} className="p-3 rounded-xl" style={{ background: "var(--bg-hover)" }}>
+                            <div className="text-xs mb-1" style={{ color: "var(--text-secondary)" }}>{item.label}</div>
+                            <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{item.value}</div>
                           </div>
                         ))}
                       </div>
 
                       {/* Medical Records */}
                       <div>
-                        <h3 className="text-sm font-semibold mb-3" style={{ color: "#f1f5f9" }}>
+                        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
                           Medical History ({profile.totalRecords} records)
                         </h3>
 
@@ -255,10 +255,10 @@ export default function AdminPatients() {
                           <div className="space-y-3">
                             {profile.records.map((rec) => (
                               <div key={rec._id} className="p-4 rounded-xl"
-                                style={{ background: "#252837", border: "1px solid #2a2d3e" }}>
+                                style={{ background: "var(--bg-hover)", border: "1px solid var(--border)" }}>
                                 <div className="flex items-start justify-between mb-2">
                                   <div>
-                                    <div className="text-sm font-medium" style={{ color: "#f1f5f9" }}>
+                                    <div className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                                       {rec.diagnosis}
                                     </div>
                                     {rec.doctor && (
@@ -301,7 +301,7 @@ export default function AdminPatients() {
 
                       {/* Admin Actions */}
                       <div className="mt-6 pt-5" style={{ borderTop: "1px solid #2a2d3e" }}>
-                        <h3 className="text-sm font-semibold mb-3" style={{ color: "#f1f5f9" }}>Admin Actions</h3>
+                        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Admin Actions</h3>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleDelete(selectedPatient._id, selectedPatient.name)}

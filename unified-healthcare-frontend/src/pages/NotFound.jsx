@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
 
   const goHome = () => {
     if (!user) return navigate("/");
@@ -17,7 +19,7 @@ export default function NotFound() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-8"
-      style={{ background: "#0f1117" }}
+      style={{ background: "var(--bg-primary)" }}
     >
       <div className="text-center animate-fade-in max-w-md">
 
@@ -27,7 +29,7 @@ export default function NotFound() {
             className="text-[120px] font-bold leading-none select-none"
             style={{
               color: "transparent",
-              WebkitTextStroke: "2px #2a2d3e",
+              WebkitTextStroke: "2px var(--border)",
             }}
           >
             404
@@ -81,15 +83,15 @@ export default function NotFound() {
           </svg>
         </div>
 
-        <h1 className="text-2xl font-bold mb-3" style={{ color: "#f1f5f9" }}>
-          Page Not Found
+        <h1 className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
+          {t('pageNotFound')}
         </h1>
 
         <p
           className="text-sm leading-relaxed mb-8"
-          style={{ color: "#94a3b8" }}
+          style={{ color: "var(--text-secondary)" }}
         >
-          The page you're looking for doesn't exist or has been moved. Let's get you back on track.
+          {t('pageNotFoundDesc')}
         </p>
 
         {/* Gradient Button */}
@@ -109,7 +111,7 @@ export default function NotFound() {
               "linear-gradient(135deg, #ef4444, #f97316)")
           }
         >
-          Go to Dashboard
+          {t('goToDashboard')}
         </button>
       </div>
     </div>
