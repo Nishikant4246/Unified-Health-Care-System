@@ -183,7 +183,7 @@ export default function Register() {
               <div>
                 <div className="text-xs font-semibold mb-1" style={{ color: "#10b981" }}>Privacy First</div>
                 <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
-                  Your personal data is encrypted and never shared with third parties without your consent.
+                  Your personal healthcare information stays protected. UHCS is designed to keep sensitive medical data secure and accessible only to authorized users. 
                 </p>
               </div>
             </div>
@@ -192,9 +192,9 @@ export default function Register() {
 
         <div className="relative z-10 grid grid-cols-3 gap-4">
           {[
-            { label: "Free to Join",    icon: "🆓" },
-            { label: "Instant Access",  icon: "⚡" },
-            { label: "Always Private",  icon: "🔐" },
+            { label: "Free to Join",    icon: "" },
+            { label: "Instant Access",  icon: "" },
+            { label: "Always Private",  icon: "" },
           ].map((item) => (
             <div key={item.label} className="p-4 rounded-xl text-center"
               style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.15)" }}>
