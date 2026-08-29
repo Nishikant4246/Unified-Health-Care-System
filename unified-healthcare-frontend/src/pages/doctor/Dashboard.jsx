@@ -32,13 +32,9 @@ function StatCard({ title, value, icon, color, index, subtitle, liveText }) {
           {liveText}
         </span>
       </div>
-      <motion.div
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 + index * 0.1 }}
-        className="text-3xl font-bold mb-1" style={{ color: "#f1f5f9" }}
-      >
+      <div className="text-3xl font-extrabold mb-1" style={{ color: "var(--text-primary)" }}>
         {value ?? "—"}
-      </motion.div>
+      </div>
       <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{title}</div>
       {subtitle && <div className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</div>}
     </motion.div>
