@@ -1,34 +1,70 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { useLanguage } from "../../context/LanguageContext";
 
+// ─── Leaflet from a reliable CDN ──────────────────────────────
+const LEAFLET_CSS = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";
+const LEAFLET_JS  = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js";
+
 const injectLeafletCSS = () => {
   if (document.getElementById("leaflet-css")) return;
-  const link  = document.createElement("link");
-  link.id     = "leaflet-css";
-  link.rel    = "stylesheet";
-  link.href   = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+  const link = document.createElement("link");
+  link.id = "leaflet-css";
+  link.rel = "stylesheet";
+  link.href = LEAFLET_CSS;
   document.head.appendChild(link);
 };
 
+const loadLeaflet = () =>
+  new Promise((resolve, reject) => {
+    if (window.L) return resolve(window.L);
+    injectLeafletCSS();
+    const existing = document.getElementById("leaflet-js");
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.L));
+      existing.addEventListener("error", () => reject(new Error("leaflet failed to load")));
+      return;
+    }
+    const s = document.createElement("script");
+    s.id = "leaflet-js";
+    s.src = LEAFLET_JS;
+    s.onload = () => resolve(window.L);
+    s.onerror = () => reject(new Error("leaflet failed to load"));
+    document.head.appendChild(s);
+  });
+
+// ─── Geo helpers ─────────────────────────────────────────────
 const getDistance = (lat1, lng1, lat2, lng2) => {
-  const R    = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a    =
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLng / 2) ** 2;
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
   return parseFloat((R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1));
 };
 
-const getDirectionsUrl = (lat, lng, name) =>
-  `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(name)}`;
+const getDirectionsUrl = (lat, lng, name) => {
+  if (lat == null || lng == null) return "https://www.google.com/maps";
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(
+    name || "",
+  )}`;
+};
 
-// ─── Specialization suggestions ───────────────────────────────
+// Avoid "Dr. Dr. Name" when a doctor registered their name with a title already
+const drName = (name = "") => {
+  const n = name.trim();
+  return /^dr\.?\s/i.test(n) ? n : `Dr. ${n}`;
+};
+
+const uhcsCoords = (d) =>
+  d?.location?.lat != null && d?.location?.lng != null ? [d.location.lat, d.location.lng] : null;
+
+// ─── Specialization suggestions ──────────────────────────────
 const SPECIALIZATIONS = [
   "General Physician", "Cardiologist", "Dermatologist", "Orthopedic",
   "Gynecologist", "Pediatrician", "Neurologist", "Dentist",
@@ -37,89 +73,213 @@ const SPECIALIZATIONS = [
   "Emergency Medicine", "Internal Medicine",
 ];
 
-// ─── OSM type → searchable keywords mapping ───────────────────
-// So "Dentist" also matches OSM hospitals/clinics with dental in name
 const OSM_SEARCH_KEYWORDS = {
-  dentist:      ["dental", "dentist", "teeth", "orthodontic"],
-  dermatologist:["skin", "derma"],
+  dentist: ["dental", "dentist", "teeth", "orthodontic"],
+  dermatologist: ["skin", "derma"],
   cardiologist: ["heart", "cardiac", "cardio"],
-  orthopedic:   ["ortho", "bone", "joint", "spine"],
+  orthopedic: ["ortho", "bone", "joint", "spine"],
   gynecologist: ["gynec", "maternity", "women", "obstet"],
   pediatrician: ["child", "pediatric", "kids"],
-  neurologist:  ["neuro", "brain"],
-  ophthalmologist:["eye", "vision", "optic"],
-  ent:          ["ent", "ear", "nose", "throat"],
+  neurologist: ["neuro", "brain"],
+  ophthalmologist: ["eye", "vision", "optic"],
+  ent: ["ent", "ear", "nose", "throat"],
 };
 
 const getOSMKeywords = (query) => {
   const q = query.toLowerCase();
   for (const [key, words] of Object.entries(OSM_SEARCH_KEYWORDS)) {
-    if (q.includes(key) || words.some((w) => q.includes(w))) {
-      return words;
-    }
+    if (q.includes(key) || words.some((w) => q.includes(w))) return words;
   }
-  return [q]; // fallback — search query itself
+  return [q];
 };
+
+// Overpass has flaky mirrors — try each in turn
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+];
+
+// ─── Search input + suggestion chips (hoisted so it keeps focus) ──
+function SearchBox({ query, setQuery, placeholder, show, setShow, suggestions, boxRef }) {
+  return (
+    <div className="relative" ref={boxRef}>
+      <div className="relative">
+        <svg
+          width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)" strokeWidth={2}
+          style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="M21 21l-4.35-4.35" />
+        </svg>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setShow(true); }}
+          onFocus={() => setShow(true)}
+          placeholder={placeholder}
+          className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-all"
+          style={{ background: "var(--bg-hover)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+        />
+        {query && (
+          <button
+            onClick={() => { setQuery(""); setShow(false); }}
+            style={{
+              position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
+              background: "var(--border)", border: "none", color: "var(--text-secondary)",
+              borderRadius: "50%", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
+        )}
+      </div>
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.15 }}
+            className="mt-1 rounded-xl overflow-hidden absolute left-0 right-0 z-[500]"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+          >
+            <div className="p-2 flex flex-wrap gap-1.5">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setQuery(s); setShow(false); }}
+                  className="text-xs px-3 py-1.5 rounded-full transition-all"
+                  style={{
+                    background: query === s ? "#a855f7" : "rgba(168,85,247,0.1)",
+                    color: query === s ? "#fff" : "#a855f7",
+                    border: "1px solid rgba(168,85,247,0.3)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── One clickable result (doctor or hospital) ───────────────
+function ResultRow({ item, isActive, onOpen }) {
+  const isUHCS = item.source === "uhcs";
+  const accent = isUHCS ? "#a855f7" : "#3b82f6";
+  return (
+    <button
+      onClick={() => onOpen(item)}
+      className="w-full text-left p-3 rounded-xl flex items-center gap-3 transition-all"
+      style={{
+        background: isActive ? `${accent}14` : "var(--bg-hover)",
+        border: `1px solid ${isActive ? accent + "66" : "var(--border)"}`,
+        cursor: "pointer",
+      }}
+    >
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+        style={{ background: `${accent}22`, color: accent }}
+      >
+        {isUHCS ? item.name?.[0]?.toUpperCase() || "D" : "🏥"}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+          {isUHCS ? drName(item.name) : item.name}
+        </div>
+        <div className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+          {isUHCS
+            ? [item.specialization, item.hospital].filter(Boolean).join(" · ") || "General"
+            : item.address || item.type}
+        </div>
+      </div>
+      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+        {item.distance != null && (
+          <span className="text-xs" style={{ color: "#10b981" }}>{item.distance} km</span>
+        )}
+        {isUHCS && item.available !== undefined && (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded-full"
+            style={{
+              background: item.available ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
+              color: item.available ? "#10b981" : "#ef4444",
+            }}
+          >
+            {item.available ? "Available" : "Unavailable"}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
 
 export default function FindDoctors() {
   const { t } = useLanguage();
-  const mapRef         = useRef(null);
+  const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const searchRef      = useRef(null);
+  const markersRef = useRef([]);
+  const searchRef = useRef(null);
 
-  const [status,         setStatus]         = useState("idle");
-  const [userLocation,   setUserLocation]   = useState(null);
-  const [uhcsDoctors,    setUhcsDoctors]    = useState([]);
-  const [realHospitals,  setRealHospitals]  = useState([]);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [errorMsg,       setErrorMsg]       = useState("");
-  const [osmStatus,      setOsmStatus]      = useState("idle");
-  const [searchQuery,    setSearchQuery]    = useState("");
-  const [showSuggestions,setShowSuggestions]= useState(false);
-  const [hoveredBtn,     setHoveredBtn]     = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | locating | loading | ready | error
+  const [userLocation, setUserLocation] = useState(null);
+  const [uhcsDoctors, setUhcsDoctors] = useState([]);
+  const [realHospitals, setRealHospitals] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [osmStatus, setOsmStatus] = useState("idle"); // idle | loading | done | empty | failed
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mapReady, setMapReady] = useState(0);
 
-  // ─── Filtered results ──────────────────────────────────────
-  const filteredUHCS = uhcsDoctors.filter((doc) => {
-    if (!searchQuery) return true;
+  // ─── Filtered lists (memoised so the map effect isn't thrashed) ──
+  const filteredUHCS = useMemo(() => {
+    if (!searchQuery) return uhcsDoctors;
     const q = searchQuery.toLowerCase();
-    return (
-      doc.name?.toLowerCase().includes(q) ||
-      doc.specialization?.toLowerCase().includes(q) ||
-      doc.hospital?.toLowerCase().includes(q)
+    return uhcsDoctors.filter(
+      (d) =>
+        d.name?.toLowerCase().includes(q) ||
+        d.specialization?.toLowerCase().includes(q) ||
+        d.hospital?.toLowerCase().includes(q),
     );
-  });
+  }, [uhcsDoctors, searchQuery]);
 
-  // ── KEY FIX: OSM search includes name + type + keyword mapping ──
-  const filteredHospitals = realHospitals.filter((h) => {
-    if (!searchQuery) return true;
-    const q        = searchQuery.toLowerCase();
+  const filteredHospitals = useMemo(() => {
+    if (!searchQuery) return realHospitals;
+    const q = searchQuery.toLowerCase();
     const keywords = getOSMKeywords(q);
-    const haystack = `${h.name} ${h.type} ${h.address}`.toLowerCase();
-    // Match if name contains query OR any keyword matches
-    return haystack.includes(q) || keywords.some((kw) => haystack.includes(kw));
-  });
+    return realHospitals.filter((h) => {
+      const haystack = `${h.name} ${h.type} ${h.address}`.toLowerCase();
+      return haystack.includes(q) || keywords.some((kw) => haystack.includes(kw));
+    });
+  }, [realHospitals, searchQuery]);
 
-  const filteredSuggestions = searchQuery.length > 0
-    ? SPECIALIZATIONS.filter((s) => s.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 6)
-    : SPECIALIZATIONS.slice(0, 8);
+  const filteredSuggestions =
+    searchQuery.length > 0
+      ? SPECIALIZATIONS.filter((s) => s.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 6)
+      : SPECIALIZATIONS.slice(0, 8);
 
   // Close suggestions on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target))
-        setShowSuggestions(false);
+      if (searchRef.current && !searchRef.current.contains(e.target)) setShowSuggestions(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // ── GPS ────────────────────────────────────────────────────
+  // ─── GPS ───────────────────────────────────────────────────
   const getLocation = () => {
+    setShowSuggestions(false);
     setStatus("locating");
     setErrorMsg("");
     setUhcsDoctors([]);
     setRealHospitals([]);
-    setSelectedDoctor(null);
+    setSelected(null);
+    setOsmStatus("idle");
 
     if (!navigator.geolocation) {
       setErrorMsg("Geolocation is not supported by your browser.");
@@ -130,7 +290,6 @@ export default function FindDoctors() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        console.log("Patient GPS:", loc);
         setUserLocation(loc);
         fetchUHCSDoctors(loc);
       },
@@ -139,196 +298,221 @@ export default function FindDoctors() {
         setErrorMsg("Location access denied. Please allow location permission and try again.");
         setStatus("error");
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 12000 },
     );
   };
 
-  const handleSearchFind = () => {
-    setShowSuggestions(false);
-    getLocation();
-  };
-
-  // ── Fetch UHCS doctors ─────────────────────────────────────
+  // ─── UHCS doctors ──────────────────────────────────────────
   const fetchUHCSDoctors = async (loc) => {
     setStatus("loading");
     try {
-      const res     = await api.get(`/patient/nearby-doctors?lat=${loc.lat}&lng=${loc.lng}&radius=50`);
-      const doctors = res.data || [];
-      console.log("UHCS doctors found:", doctors.length, doctors);
-      setUhcsDoctors(doctors);
+      const res = await api.get(`/patient/nearby-doctors?lat=${loc.lat}&lng=${loc.lng}&radius=75`);
+      setUhcsDoctors(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("UHCS fetch error:", err);
+      setUhcsDoctors([]);
     }
     setStatus("ready");
     fetchOSMHospitals(loc);
   };
 
-  // ── Fetch OSM hospitals ────────────────────────────────────
-  const fetchOSMHospitals = async (loc, attempt = 1) => {
+  // ─── Real hospitals via Overpass (with mirror fallback) ─────
+  const fetchOSMHospitals = async (loc) => {
     setOsmStatus("loading");
-    try {
-      const overpassQuery = `
-        [out:json][timeout:25];
-        (
-          node["amenity"="hospital"](around:15000,${loc.lat},${loc.lng});
-          node["amenity"="clinic"](around:15000,${loc.lat},${loc.lng});
-          node["amenity"="dentist"](around:15000,${loc.lat},${loc.lng});
-          node["healthcare"="doctor"](around:15000,${loc.lat},${loc.lng});
-        );
-        out body;
-      `;
-      const controller = new AbortController();
-      const timeoutId  = setTimeout(() => controller.abort(), 20000);
-      const osmRes     = await fetch(
-        `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeoutId);
-      if (!osmRes.ok) throw new Error(`OSM ${osmRes.status}`);
+    const query = `[out:json][timeout:20];(
+      node["amenity"~"hospital|clinic|doctors|dentist"](around:12000,${loc.lat},${loc.lng});
+      node["healthcare"](around:12000,${loc.lat},${loc.lng});
+    );out body 80;`;
 
-      const osmData   = await osmRes.json();
-      const hospitals = (osmData.elements || [])
-        .filter((el) => el.tags?.name)
-        .map((el) => ({
-          id:           el.id,
-          name:         el.tags.name,
-          // ── Store ALL searchable fields from OSM tags ──
-          type:         el.tags.amenity || el.tags.healthcare || "hospital",
-          specialty:    el.tags["healthcare:speciality"] || el.tags["medical_system:medicine"] || "",
-          lat:          el.lat,
-          lng:          el.lon,
-          address:      [
-            el.tags["addr:housenumber"],
-            el.tags["addr:street"],
-            el.tags["addr:city"],
-          ].filter(Boolean).join(", ") || el.tags["addr:full"] || "",
-          phone:        el.tags.phone || el.tags["contact:phone"] || "",
-          source:       "osm",
-          distance:     getDistance(loc.lat, loc.lng, el.lat, el.lon),
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 40);
+    for (const endpoint of OVERPASS_ENDPOINTS) {
+      try {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 18000);
+        const res = await fetch(`${endpoint}?data=${encodeURIComponent(query)}`, { signal: ctrl.signal });
+        clearTimeout(to);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
 
-      console.log("OSM hospitals found:", hospitals.length);
-      setRealHospitals(hospitals);
-      setOsmStatus("done");
-    } catch (err) {
-      console.error(`OSM attempt ${attempt}:`, err.message);
-      if (attempt < 2) setTimeout(() => fetchOSMHospitals(loc, 2), 3000);
-      else setOsmStatus("failed");
+        const list = (data.elements || [])
+          .filter((el) => el.tags?.name && el.lat && el.lon)
+          .map((el) => ({
+            id: el.id,
+            name: el.tags.name,
+            type: el.tags.amenity || el.tags.healthcare || "hospital",
+            lat: el.lat,
+            lng: el.lon,
+            address:
+              [el.tags["addr:street"], el.tags["addr:city"]].filter(Boolean).join(", ") ||
+              el.tags["addr:full"] ||
+              "",
+            phone: el.tags.phone || el.tags["contact:phone"] || "",
+            source: "osm",
+            distance: getDistance(loc.lat, loc.lng, el.lat, el.lon),
+          }))
+          .sort((a, b) => a.distance - b.distance)
+          .slice(0, 50);
+
+        setRealHospitals(list);
+        setOsmStatus(list.length ? "done" : "empty");
+        return;
+      } catch (e) {
+        console.warn("Overpass mirror failed:", endpoint, e.message);
+      }
     }
+    setOsmStatus("failed");
   };
 
-  // ── Leaflet map ────────────────────────────────────────────
+  // ─── Create the map once we're "ready" ─────────────────────
   useEffect(() => {
     if (status !== "ready" || !userLocation || !mapRef.current) return;
-    injectLeafletCSS();
+    let cancelled = false;
 
-    const initMap = () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-      const L   = window.L;
-      const map = L.map(mapRef.current, { zoomControl: true })
-                   .setView([userLocation.lat, userLocation.lng], 13);
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: "© OpenStreetMap © CARTO", maxZoom: 19,
-      }).addTo(map);
-      mapInstanceRef.current = map;
-
-      // User
-      const userIcon = L.divIcon({
-        html: `<div style="width:18px;height:18px;background:#10b981;border-radius:50%;
-                    border:3px solid #fff;box-shadow:0 0 0 6px rgba(16,185,129,0.25);"></div>`,
-        className: "", iconAnchor: [9, 9],
-      });
-      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
-       .addTo(map)
-       .bindPopup('<div style="font-size:12px;font-weight:600;color:#1e2130;">📍 You are here</div>');
-
-      // UHCS doctors
-      filteredUHCS.forEach((doc) => {
-        if (!doc.location?.lat || !doc.location?.lng) return;
-        const icon = L.divIcon({
-          html: `<div style="width:40px;height:40px;background:#a855f7;border-radius:50%;
-                      border:3px solid #fff;display:flex;align-items:center;justify-content:center;
-                      font-size:16px;font-weight:700;color:#fff;cursor:pointer;
-                      box-shadow:0 4px 12px rgba(168,85,247,0.6);">
-                   ${doc.name?.[0]?.toUpperCase() || "D"}
-                 </div>`,
-          className: "", iconAnchor: [20, 20],
-        });
-        const marker = L.marker([doc.location.lat, doc.location.lng], { icon }).addTo(map);
-        marker.on("click", () => setSelectedDoctor({ ...doc, source: "uhcs" }));
-      });
-
-      // OSM hospitals
-      filteredHospitals.forEach((h) => {
-        const icon = L.divIcon({
-          html: `<div style="width:32px;height:32px;background:#3b82f6;border-radius:50%;
-                      border:3px solid #fff;display:flex;align-items:center;justify-content:center;
-                      font-size:14px;cursor:pointer;
-                      box-shadow:0 2px 8px rgba(59,130,246,0.5);">🏥</div>`,
-          className: "", iconAnchor: [16, 16],
-        });
-        const marker = L.marker([h.lat, h.lng], { icon }).addTo(map);
-        marker.on("click", () => setSelectedDoctor(h));
-      });
-    };
-
-    if (window.L) initMap();
-    else {
-      const script  = document.createElement("script");
-      script.src    = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-      script.onload = initMap;
-      document.head.appendChild(script);
-    }
+    loadLeaflet()
+      .then((L) => {
+        if (cancelled || !mapRef.current) return;
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
+        }
+        const map = L.map(mapRef.current, { zoomControl: true }).setView(
+          [userLocation.lat, userLocation.lng],
+          13,
+        );
+        // Free, key-less OpenStreetMap tiles. Dark mode is handled by a CSS
+        // filter on .leaflet-tile-pane (see index.css) so no paid dark basemap.
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(map);
+        if (map.attributionControl) {
+          map.attributionControl.setPrefix(
+            '<span style="font-weight:700;color:#a855f7;">UHCS</span>',
+          );
+        }
+        mapInstanceRef.current = map;
+        markersRef.current = [];
+        setMapReady((n) => n + 1);
+      })
+      .catch((e) => console.error("Map init failed:", e.message));
 
     return () => {
+      cancelled = true;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      markersRef.current = [];
     };
-  }, [status, userLocation, filteredUHCS, filteredHospitals]);
+  }, [status, userLocation]);
+
+  // ─── (Re)draw markers when data / filters change ───────────
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const L = window.L;
+    if (!map || !L || !userLocation) return;
+
+    markersRef.current.forEach((m) => map.removeLayer(m));
+    markersRef.current = [];
+
+    const userIcon = L.divIcon({
+      html: `<div style="width:18px;height:18px;background:#10b981;border-radius:50%;
+              border:3px solid #fff;box-shadow:0 0 0 6px rgba(16,185,129,0.25);"></div>`,
+      className: "",
+      iconAnchor: [9, 9],
+    });
+    markersRef.current.push(
+      L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<div style="font-size:12px;font-weight:600;color:#1e2130;">📍 You are here</div>'),
+    );
+
+    filteredUHCS.forEach((doc) => {
+      const c = uhcsCoords(doc);
+      if (!c) return;
+      const icon = L.divIcon({
+        html: `<div style="width:38px;height:38px;background:#a855f7;border-radius:50%;
+                border:3px solid #fff;display:flex;align-items:center;justify-content:center;
+                font-size:15px;font-weight:700;color:#fff;cursor:pointer;
+                box-shadow:0 4px 12px rgba(168,85,247,0.6);">${doc.name?.[0]?.toUpperCase() || "D"}</div>`,
+        className: "",
+        iconAnchor: [19, 19],
+      });
+      const m = L.marker(c, { icon }).addTo(map);
+      m.on("click", () => setSelected({ ...doc, source: "uhcs" }));
+      markersRef.current.push(m);
+    });
+
+    filteredHospitals.forEach((h) => {
+      const icon = L.divIcon({
+        html: `<div style="width:30px;height:30px;background:#3b82f6;border-radius:50%;
+                border:3px solid #fff;display:flex;align-items:center;justify-content:center;
+                font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(59,130,246,0.5);">🏥</div>`,
+        className: "",
+        iconAnchor: [15, 15],
+      });
+      const m = L.marker([h.lat, h.lng], { icon }).addTo(map);
+      m.on("click", () => setSelected(h));
+      markersRef.current.push(m);
+    });
+  }, [mapReady, filteredUHCS, filteredHospitals, userLocation]);
+
+  // Pan the map to a result when it's picked from a list
+  const focusOnResult = (item) => {
+    setSelected(item);
+    const map = mapInstanceRef.current;
+    const c = item.source === "uhcs" ? uhcsCoords(item) : [item.lat, item.lng];
+    if (map && c && c[0] != null) map.flyTo(c, 15, { duration: 0.6 });
+  };
+
+  const resetAll = () => {
+    setStatus("idle");
+    setSelected(null);
+    setSearchQuery("");
+    setUhcsDoctors([]);
+    setRealHospitals([]);
+    setOsmStatus("idle");
+  };
+
+  const cardStyle = { background: "var(--bg-card)", border: "1px solid var(--border)" };
+  const activeId = selected?._id || selected?.id;
 
   // ══════════════════════════════════════════════════════════
   return (
     <PageTransition>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>{t('findNearbyDoctors')}</h1>
+        <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+          {t("findNearbyDoctors")}
+        </h1>
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-          UHCS registered doctors + real hospitals near you
+          UHCS registered doctors and real hospitals near you
         </p>
       </div>
 
       {/* ── IDLE ── */}
       {status === "idle" && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          className="p-6 rounded-2xl"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-
-          <h2 className="text-sm font-semibold mb-4" style={{ color: "#94a3b8" }}>HOW IT WORKS</h2>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-2xl" style={cardStyle}>
+          <h2 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
+            How it works
+          </h2>
           <div className="space-y-3 mb-6">
             {[
-              { step: "1", icon: "📍", title: "Share your location",      desc: "Browser will ask for GPS — click Allow" },
-              { step: "2", icon: "🔍", title: "We find nearby doctors",   desc: "UHCS doctors + real hospitals within 50km" },
-              { step: "3", icon: "🗺️", title: "View on interactive map", desc: "Purple = UHCS doctors · Blue = Real hospitals" },
-              { step: "4", icon: "📋", title: "Click any pin",            desc: "See name, specialization, fee, distance" },
-              { step: "5", icon: "🧭", title: "Get directions",           desc: "One click opens Google Maps with route" },
+              { step: "1", title: "Share your location", desc: "Your browser will ask for GPS — tap Allow" },
+              { step: "2", title: "We find nearby doctors", desc: "UHCS doctors plus real hospitals around you" },
+              { step: "3", title: "Browse the map or the list", desc: "Purple = UHCS doctor · Blue = hospital / clinic" },
+              { step: "4", title: "Open a result", desc: "See specialization, fee, availability and distance" },
+              { step: "5", title: "Get directions", desc: "One tap opens Google Maps with the route" },
             ].map((s) => (
               <div key={s.step} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
-                  style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.3)" }}>
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                  style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7", border: "1px solid rgba(168,85,247,0.3)" }}
+                >
                   {s.step}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span style={{ fontSize: "14px" }}>{s.icon}</span>
-                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{s.title}</span>
-                  </div>
-                  <p className="text-xs mt-0.5" style={{ color: "#64748b" }}>{s.desc}</p>
+                  <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{s.title}</div>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -336,150 +520,82 @@ export default function FindDoctors() {
 
           <div className="flex items-center gap-4 mb-5 p-3 rounded-xl flex-wrap" style={{ background: "var(--bg-hover)" }}>
             {[
-              { color: "#a855f7", label: "UHCS Registered Doctor" },
-              { color: "#3b82f6", label: "Real Hospital / Clinic"  },
-              { color: "#10b981", label: "Your Location"           },
+              { color: "#a855f7", label: "UHCS Doctor" },
+              { color: "#3b82f6", label: "Hospital / Clinic" },
+              { color: "#10b981", label: "Your Location" },
             ].map((l) => (
               <div key={l.label} className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ background: l.color }} />
-                <span className="text-xs" style={{ color: "#94a3b8" }}>{l.label}</span>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: l.color }} />
+                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{l.label}</span>
               </div>
             ))}
           </div>
 
-          {/* ── Search box — NO label, just input ── */}
-          <div className="mb-4" ref={searchRef}>
-            <div className="relative">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth={2}
-                style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder="Search by specialization or name (optional)..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-all"
-                style={{ background: "var(--bg-hover)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-                onMouseEnter={(e) => (e.target.style.borderColor = "#3b82f6")}
-                onMouseLeave={(e) => { if (!showSuggestions) e.target.style.borderColor = "#2a2d3e"; }}
-              />
-              {searchQuery && (
-                <button onClick={() => { setSearchQuery(""); setShowSuggestions(false); }}
-                  style={{
-                    position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                    background: "#2a2d3e", border: "none", color: "#94a3b8",
-                    borderRadius: "50%", width: "20px", height: "20px",
-                    cursor: "pointer", fontSize: "12px",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>✕</button>
-              )}
-            </div>
-
-            {/* Suggestions */}
-            <AnimatePresence>
-              {showSuggestions && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
-                  className="mt-1 rounded-xl overflow-hidden"
-                  style={{ background: "var(--bg-hover)", border: "1px solid var(--border)" }}>
-                  <div className="p-2 flex flex-wrap gap-1.5">
-                    {filteredSuggestions.map((s) => (
-                      <button key={s}
-                        onClick={() => { setSearchQuery(s); setShowSuggestions(false); }}
-                        className="text-xs px-3 py-1.5 rounded-full transition-all"
-                        style={{
-                          background: searchQuery === s ? "#3b82f6" : "rgba(59,130,246,0.1)",
-                          color:      searchQuery === s ? "#fff" : "#3b82f6",
-                          border:     "1px solid rgba(59,130,246,0.3)",
-                          cursor:     "pointer",
-                        }}
-                        onMouseEnter={(e) => { e.target.style.background = "#3b82f6"; e.target.style.color = "#fff"; }}
-                        onMouseLeave={(e) => {
-                          if (searchQuery !== s) { e.target.style.background = "rgba(59,130,246,0.1)"; e.target.style.color = "#3b82f6"; }
-                        }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <div className="mb-4">
+            <SearchBox
+              query={searchQuery}
+              setQuery={setSearchQuery}
+              placeholder="Optional — filter by specialization or name"
+              show={showSuggestions}
+              setShow={setShowSuggestions}
+              suggestions={filteredSuggestions}
+              boxRef={searchRef}
+            />
           </div>
 
-          {/* ── Two buttons ── */}
-          <div className="flex flex-col gap-3">
-            <motion.button onClick={getLocation}
-              whileTap={{ scale: 0.98 }}
-              onMouseEnter={() => setHoveredBtn("find")}
-              onMouseLeave={() => setHoveredBtn(null)}
-              className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
-              style={{
-                background:  hoveredBtn === "find" ? "#2563eb" : "#3b82f6",
-                color:       "white", cursor: "pointer",
-                transform:   hoveredBtn === "find" ? "translateY(-2px)" : "translateY(0)",
-                boxShadow:   hoveredBtn === "find" ? "0 8px 24px rgba(59,130,246,0.4)" : "none",
-              }}>
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-                <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-                <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
-              </svg>
-              📍 Find All Doctors Near Me
-            </motion.button>
-
-            <motion.button onClick={handleSearchFind}
-              whileTap={{ scale: 0.98 }}
-              onMouseEnter={() => setHoveredBtn("search")}
-              onMouseLeave={() => setHoveredBtn(null)}
-              className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
-              style={{
-                background:  hoveredBtn === "search" ? "rgba(168,85,247,0.2)" : "rgba(168,85,247,0.1)",
-                color:       "#a855f7",
-                border:      `1px solid ${hoveredBtn === "search" ? "#a855f7" : "rgba(168,85,247,0.3)"}`,
-                cursor:      "pointer",
-                transform:   hoveredBtn === "search" ? "translateY(-2px)" : "translateY(0)",
-                boxShadow:   hoveredBtn === "search" ? "0 8px 24px rgba(168,85,247,0.2)" : "none",
-              }}>
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              {searchQuery ? `🔍 Search "${searchQuery}" Near Me` : "🔍 Search by Specialization"}
-            </motion.button>
-          </div>
+          <button
+            onClick={getLocation}
+            className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all"
+            style={{ background: "#a855f7", color: "white", cursor: "pointer" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#9333ea")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#a855f7")}
+          >
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="3" />
+              <line x1="12" y1="2" x2="12" y2="5" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+              <line x1="2" y1="12" x2="5" y2="12" />
+              <line x1="19" y1="12" x2="22" y2="12" />
+            </svg>
+            {searchQuery ? `Find "${searchQuery}" near me` : "Find doctors near me"}
+          </button>
         </motion.div>
       )}
 
       {/* ── LOCATING / LOADING ── */}
       {(status === "locating" || status === "loading") && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-20 rounded-2xl"
-          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <div className="w-12 h-12 rounded-full border-4 animate-spin mb-4"
-            style={{ borderColor: "#2a2d3e", borderTopColor: "#3b82f6" }} />
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-20 rounded-2xl" style={cardStyle}
+        >
+          <div
+            className="w-12 h-12 rounded-full border-4 animate-spin mb-4"
+            style={{ borderColor: "var(--border)", borderTopColor: "#a855f7" }}
+          />
           <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
-            {status === "locating" ? "Getting your location..." : "Finding nearby doctors..."}
+            {status === "locating" ? "Getting your location…" : "Finding nearby doctors…"}
           </p>
-          <p className="text-sm mt-1" style={{ color: "#64748b" }}>
-            {status === "locating" ? "Please allow location access"
-              : searchQuery ? `Searching "${searchQuery}" within 50km`
-              : "Searching all doctors within 50km"}
+          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+            {status === "locating" ? "Please allow location access" : "Searching around you"}
           </p>
         </motion.div>
       )}
 
       {/* ── ERROR ── */}
       {status === "error" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="p-6 rounded-2xl text-center"
-          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}
+        >
           <div className="text-4xl mb-3">⚠️</div>
           <p className="font-semibold mb-1" style={{ color: "#f87171" }}>{errorMsg}</p>
-          <button onClick={() => setStatus("idle")}
+          <button
+            onClick={() => setStatus("idle")}
             className="mt-4 px-5 py-2 rounded-xl text-sm font-semibold"
-            style={{ background: "#3b82f6", color: "white", cursor: "pointer" }}>
+            style={{ background: "#a855f7", color: "white", cursor: "pointer" }}
+          >
             Try Again
           </button>
         </motion.div>
@@ -488,166 +604,141 @@ export default function FindDoctors() {
       {/* ── READY ── */}
       {status === "ready" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-
-          {/* Search on map view */}
-          <div className="mb-3 relative" ref={searchRef}>
-            <div className="relative">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth={2}
-                style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
-                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); }}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder="Filter by specialization or name..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none"
-                style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
-              />
-              {searchQuery && (
-                <button onClick={() => { setSearchQuery(""); setShowSuggestions(false); }}
-                  style={{
-                    position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)",
-                    background: "#2a2d3e", border: "none", color: "#94a3b8",
-                    borderRadius: "50%", width: "20px", height: "20px",
-                    cursor: "pointer", fontSize: "12px",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>✕</button>
-              )}
-            </div>
-            <AnimatePresence>
-              {showSuggestions && (
-                <motion.div
-                  initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.15 }}
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px",
-                           marginTop: "4px", position: "relative", zIndex: 50 }}>
-                  <div className="p-2 flex flex-wrap gap-1.5">
-                    {filteredSuggestions.map((s) => (
-                      <button key={s}
-                        onClick={() => { setSearchQuery(s); setShowSuggestions(false); }}
-                        className="text-xs px-3 py-1.5 rounded-full transition-all"
-                        style={{
-                          background: searchQuery === s ? "#3b82f6" : "rgba(59,130,246,0.1)",
-                          color:      searchQuery === s ? "#fff" : "#3b82f6",
-                          border:     "1px solid rgba(59,130,246,0.3)", cursor: "pointer",
-                        }}
-                        onMouseEnter={(e) => { e.target.style.background = "#3b82f6"; e.target.style.color = "#fff"; }}
-                        onMouseLeave={(e) => {
-                          if (searchQuery !== s) { e.target.style.background = "rgba(59,130,246,0.1)"; e.target.style.color = "#3b82f6"; }
-                        }}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          <div className="mb-3">
+            <SearchBox
+              query={searchQuery}
+              setQuery={setSearchQuery}
+              placeholder="Filter by specialization or name…"
+              show={showSuggestions}
+              setShow={setShowSuggestions}
+              suggestions={filteredSuggestions}
+              boxRef={searchRef}
+            />
           </div>
 
           {/* Stats bar */}
-          <div className="flex items-center gap-3 mb-3 flex-wrap">
-            <span className="text-xs px-3 py-1.5 rounded-full font-medium"
-              style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7", border: "1px solid rgba(168,85,247,0.3)" }}>
-              🟣 {filteredUHCS.length} UHCS Doctor{filteredUHCS.length !== 1 ? "s" : ""}
-              {searchQuery && uhcsDoctors.length !== filteredUHCS.length && ` (of ${uhcsDoctors.length})`}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <span
+              className="text-xs px-3 py-1.5 rounded-full font-medium"
+              style={{ background: "rgba(168,85,247,0.15)", color: "#a855f7", border: "1px solid rgba(168,85,247,0.3)" }}
+            >
+              {filteredUHCS.length} UHCS doctor{filteredUHCS.length !== 1 ? "s" : ""}
+              {searchQuery && uhcsDoctors.length !== filteredUHCS.length ? ` of ${uhcsDoctors.length}` : ""}
             </span>
-            <span className="text-xs px-3 py-1.5 rounded-full font-medium"
-              style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.3)" }}>
-              {osmStatus === "loading" ? "🔵 Loading hospitals..." :
-               osmStatus === "failed"  ? "🔵 Unavailable" :
-               `🔵 ${filteredHospitals.length} Hospitals/Clinics`}
+            <span
+              className="text-xs px-3 py-1.5 rounded-full font-medium"
+              style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6", border: "1px solid rgba(59,130,246,0.3)" }}
+            >
+              {osmStatus === "loading"
+                ? "Loading hospitals…"
+                : osmStatus === "failed"
+                ? "Hospitals unavailable"
+                : `${filteredHospitals.length} hospital${filteredHospitals.length !== 1 ? "s" : ""}`}
             </span>
-            <button onClick={() => { setStatus("idle"); setSelectedDoctor(null); setSearchQuery(""); }}
+            <button
+              onClick={resetAll}
               className="ml-auto text-xs px-3 py-1.5 rounded-full transition-all"
               style={{ background: "var(--bg-hover)", color: "var(--text-secondary)", border: "1px solid var(--border)", cursor: "pointer" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "#2a2d3e"; e.currentTarget.style.color = "#f1f5f9"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "#252837"; e.currentTarget.style.color = "#94a3b8"; }}>
+            >
               Reset
             </button>
           </div>
 
           {/* Map */}
-          <div className="rounded-2xl overflow-hidden mb-4"
-            style={{ height: "420px", border: "1px solid #2a2d3e" }}>
+          <div className="rounded-2xl overflow-hidden mb-4" style={{ height: "380px", border: "1px solid var(--border)" }}>
             <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
           </div>
 
-          {/* Doctor card */}
+          {/* Selected result card */}
           <AnimatePresence>
-            {selectedDoctor && (
-              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }} className="p-5 rounded-2xl mb-4"
+            {selected && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }}
+                className="p-5 rounded-2xl mb-4"
                 style={{
                   background: "var(--bg-card)",
-                  border: `1px solid ${selectedDoctor.source === "uhcs" ? "rgba(168,85,247,0.4)" : "rgba(59,130,246,0.4)"}`,
-                }}>
+                  border: `1px solid ${selected.source === "uhcs" ? "rgba(168,85,247,0.4)" : "rgba(59,130,246,0.4)"}`,
+                }}
+              >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0"
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0"
                     style={{
-                      background: selectedDoctor.source === "uhcs" ? "rgba(168,85,247,0.15)" : "rgba(59,130,246,0.15)",
-                      color:      selectedDoctor.source === "uhcs" ? "#a855f7" : "#3b82f6",
-                    }}>
-                    {selectedDoctor.source === "uhcs" ? selectedDoctor.name?.[0]?.toUpperCase() : "🏥"}
+                      background: selected.source === "uhcs" ? "rgba(168,85,247,0.15)" : "rgba(59,130,246,0.15)",
+                      color: selected.source === "uhcs" ? "#a855f7" : "#3b82f6",
+                    }}
+                  >
+                    {selected.source === "uhcs" ? selected.name?.[0]?.toUpperCase() : "🏥"}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-bold text-base" style={{ color: "var(--text-primary)" }}>
-                        {selectedDoctor.source === "uhcs" ? `Dr. ${selectedDoctor.name}` : selectedDoctor.name}
+                        {selected.source === "uhcs" ? drName(selected.name) : selected.name}
                       </span>
-                      <span className="text-xs px-2 py-0.5 rounded-full"
+                      <span
+                        className="text-xs px-2 py-0.5 rounded-full"
                         style={{
-                          background: selectedDoctor.source === "uhcs" ? "rgba(168,85,247,0.15)" : "rgba(59,130,246,0.15)",
-                          color:      selectedDoctor.source === "uhcs" ? "#a855f7" : "#3b82f6",
-                        }}>
-                        {selectedDoctor.source === "uhcs" ? "UHCS Registered" : "Real Hospital"}
+                          background: selected.source === "uhcs" ? "rgba(168,85,247,0.15)" : "rgba(59,130,246,0.15)",
+                          color: selected.source === "uhcs" ? "#a855f7" : "#3b82f6",
+                        }}
+                      >
+                        {selected.source === "uhcs" ? "UHCS Registered" : "Real Hospital"}
                       </span>
                     </div>
                     <div className="space-y-1 text-sm" style={{ color: "var(--text-secondary)" }}>
-                      {selectedDoctor.specialization && <div>🩺 {selectedDoctor.specialization}</div>}
-                      {selectedDoctor.hospital       && <div>🏥 {selectedDoctor.hospital}</div>}
-                      {selectedDoctor.address        && <div>📍 {selectedDoctor.address}</div>}
-                      {selectedDoctor.phone          && <div>📞 {selectedDoctor.phone}</div>}
-                      <div className="flex items-center gap-3 flex-wrap pt-1">
-                        {selectedDoctor.consultationFee > 0 && (
-                          <span className="text-xs px-2 py-1 rounded-full"
-                            style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>
-                            ₹{selectedDoctor.consultationFee} fee
+                      {selected.specialization && <div>🩺 {selected.specialization}</div>}
+                      {selected.qualification && <div>🎓 {selected.qualification}</div>}
+                      {selected.hospital && <div>🏥 {selected.hospital}</div>}
+                      {selected.address && <div>📍 {selected.address}</div>}
+                      {selected.phone && <div>📞 {selected.phone}</div>}
+                      <div className="flex items-center gap-2 flex-wrap pt-1">
+                        {selected.consultationFee > 0 && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>
+                            ₹{selected.consultationFee} fee
                           </span>
                         )}
-                        {selectedDoctor.distance && (
-                          <span className="text-xs px-2 py-1 rounded-full"
-                            style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
-                            📍 {selectedDoctor.distance} km away
+                        {selected.distance != null && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
+                            📍 {selected.distance} km away
                           </span>
                         )}
-                        {selectedDoctor.available !== undefined && (
-                          <span className="text-xs px-2 py-1 rounded-full"
+                        {selected.available !== undefined && (
+                          <span
+                            className="text-xs px-2 py-1 rounded-full"
                             style={{
-                              background: selectedDoctor.available ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                              color:      selectedDoctor.available ? "#10b981" : "#ef4444",
-                            }}>
-                            {selectedDoctor.available ? "● Available" : "● Unavailable"}
+                              background: selected.available ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
+                              color: selected.available ? "#10b981" : "#ef4444",
+                            }}
+                          >
+                            {selected.available ? "● Available" : "● Unavailable"}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedDoctor(null)}
-                    style={{ background: "#252837", border: "1px solid #2a2d3e", borderRadius: "8px",
-                             color: "#94a3b8", padding: "4px 10px", cursor: "pointer", fontSize: "13px" }}>✕</button>
+                  <button
+                    onClick={() => setSelected(null)}
+                    style={{
+                      background: "var(--bg-hover)", border: "1px solid var(--border)", borderRadius: "8px",
+                      color: "var(--text-secondary)", padding: "4px 10px", cursor: "pointer", fontSize: "13px",
+                    }}
+                  >
+                    ✕
+                  </button>
                 </div>
-                <a href={getDirectionsUrl(
-                    selectedDoctor.source === "uhcs" ? selectedDoctor.location.lat : selectedDoctor.lat,
-                    selectedDoctor.source === "uhcs" ? selectedDoctor.location.lng : selectedDoctor.lng,
-                    selectedDoctor.name
+                <a
+                  href={getDirectionsUrl(
+                    selected.source === "uhcs" ? uhcsCoords(selected)?.[0] : selected.lat,
+                    selected.source === "uhcs" ? uhcsCoords(selected)?.[1] : selected.lng,
+                    selected.name,
                   )}
-                  target="_blank" rel="noreferrer"
+                  target="_blank"
+                  rel="noreferrer"
                   className="flex items-center justify-center gap-2 w-full mt-4 py-3 rounded-xl font-semibold text-sm transition-all"
-                  style={{ background: "#3b82f6", color: "white", textDecoration: "none" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "#2563eb"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "#3b82f6"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                  style={{ background: "#a855f7", color: "white", textDecoration: "none" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#9333ea")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#a855f7")}
+                >
                   <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <polygon points="3 11 22 2 13 21 11 13 3 11" />
                   </svg>
@@ -657,26 +748,63 @@ export default function FindDoctors() {
             )}
           </AnimatePresence>
 
-          {/* No results */}
-          {filteredUHCS.length === 0 && filteredHospitals.length === 0 && osmStatus !== "loading" && (
-            <div className="text-center py-8 rounded-2xl"
-              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <div className="text-4xl mb-3">🔍</div>
-              <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
-                {searchQuery ? `No "${searchQuery}" found nearby` : "No doctors found nearby"}
-              </p>
-              <p className="text-sm mt-1" style={{ color: "#64748b" }}>
-                {searchQuery ? "Try a different specialization" : "Ask your doctor to set location on UHCS dashboard"}
-              </p>
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")}
-                  className="mt-3 px-4 py-2 rounded-xl text-xs font-semibold"
-                  style={{ background: "#3b82f6", color: "white", cursor: "pointer" }}>
-                  Clear Search
-                </button>
+          {/* ── Results lists ── */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* UHCS doctors */}
+            <div className="p-4 rounded-2xl" style={cardStyle}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#a855f7" }} />
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  UHCS Doctors ({filteredUHCS.length})
+                </span>
+              </div>
+              {filteredUHCS.length === 0 ? (
+                <p className="text-xs py-4 text-center" style={{ color: "var(--text-secondary)" }}>
+                  {searchQuery
+                    ? `No UHCS doctor matches "${searchQuery}"`
+                    : "No UHCS doctors have set a location yet."}
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {filteredUHCS.map((d) => (
+                    <ResultRow
+                      key={d._id || d.uniqueId}
+                      item={{ ...d, source: "uhcs" }}
+                      isActive={activeId === d._id}
+                      onOpen={focusOnResult}
+                    />
+                  ))}
+                </div>
               )}
             </div>
-          )}
+
+            {/* Hospitals */}
+            <div className="p-4 rounded-2xl" style={cardStyle}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#3b82f6" }} />
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  Nearby Hospitals ({filteredHospitals.length})
+                </span>
+              </div>
+              {osmStatus === "loading" ? (
+                <p className="text-xs py-4 text-center" style={{ color: "var(--text-secondary)" }}>Loading…</p>
+              ) : filteredHospitals.length === 0 ? (
+                <p className="text-xs py-4 text-center" style={{ color: "var(--text-secondary)" }}>
+                  {osmStatus === "failed"
+                    ? "Hospital data source is unavailable right now."
+                    : searchQuery
+                    ? `No hospital matches "${searchQuery}"`
+                    : "No hospitals found nearby."}
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {filteredHospitals.map((h) => (
+                    <ResultRow key={h.id} item={h} isActive={activeId === h.id} onOpen={focusOnResult} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </motion.div>
       )}
     </PageTransition>

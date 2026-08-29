@@ -187,3 +187,15 @@ body {
   border-radius: 13px;
   opacity: 0.18;
 }
+
+/* ── Leaflet map (Find Doctors) ─────────────────────────────
+   OpenStreetMap ships light tiles only. In dark theme, invert
+   just the tile pane so the map matches the portal — markers,
+   popups and controls live in other panes and stay untouched. */
+[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9);
+}
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  padding: 1px 6px !important;
+}

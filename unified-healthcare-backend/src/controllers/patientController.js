@@ -192,10 +192,10 @@ export const getPatientStats = async (req, res) => {
 };
 
 // ================= GET NEARBY DOCTORS =================
-// ── FIX: Query doctors where location.lat exists and is a number ──
+// Returns approved doctors that have a map location, sorted by distance.
 export const getNearbyDoctors = async (req, res) => {
   try {
-    const { lat, lng, radius = 20 } = req.query;
+    const { lat, lng, radius } = req.query;
 
     if (!lat || !lng) {
       return res.status(400).json({ message: "lat and lng are required" });
@@ -203,25 +203,33 @@ export const getNearbyDoctors = async (req, res) => {
 
     const patientLat = parseFloat(lat);
     const patientLng = parseFloat(lng);
+    const maxRadius  = radius ? parseFloat(radius) : null;
 
-    // ── KEY FIX: Use $exists + $type to find doctors with valid location ──
+    // $type: "number" already implies the path exists and is a real number
     const doctors = await User.find({
       role:   "doctor",
       status: "approved",
-      "location.lat": { $exists: true, $type: "number" },
-      "location.lng": { $exists: true, $type: "number" },
-    }).select("name specialization hospital consultationFee phone location available uniqueId");
+      "location.lat": { $type: "number" },
+      "location.lng": { $type: "number" },
+    }).select(
+      "name specialization qualification experience hospital consultationFee phone location available uniqueId",
+    );
 
-    console.log(`Found ${doctors.length} doctors with location set`); // debug
-
-    const nearby = doctors
-      .map((doc) => {
-        const distance = getDistance(patientLat, patientLng, doc.location.lat, doc.location.lng);
-        return { ...doc.toObject(), distance };
-      })
-      .filter((doc) => doc.distance <= parseFloat(radius))
+    let nearby = doctors
+      .map((doc) => ({
+        ...doc.toObject(),
+        distance: getDistance(patientLat, patientLng, doc.location.lat, doc.location.lng),
+      }))
       .sort((a, b) => a.distance - b.distance);
 
+    // Prefer doctors within the requested radius, but never hide every UHCS
+    // doctor just because the patient is far away — fall back to the nearest 20.
+    if (maxRadius) {
+      const within = nearby.filter((d) => d.distance <= maxRadius);
+      nearby = within.length > 0 ? within : nearby.slice(0, 20);
+    }
+
+    console.log(`Nearby doctors: ${doctors.length} with location, returning ${nearby.length}`);
     res.status(200).json(nearby);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch nearby doctors", error: error.message });
