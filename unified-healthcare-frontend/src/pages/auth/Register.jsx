@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useLanguage } from "../../context/LanguageContext";
+import Logo from "../../components/common/Logo";
 
 // ── Password strength ─────────────────────────────────────────
 function getPasswordStrength(pw) {
@@ -155,13 +156,7 @@ export default function Register() {
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: "#10b981" }}>
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-                <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
-              </svg>
-            </div>
-            <span className="font-bold text-xl tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</span>
+            <Logo subtitle="Unified Healthcare System" size={38} wordmarkSize={20} subtitleSize={12} />
           </div>
 
           <h1 className="text-5xl font-bold leading-tight mb-6" style={{ color: "var(--text-primary)" }}>

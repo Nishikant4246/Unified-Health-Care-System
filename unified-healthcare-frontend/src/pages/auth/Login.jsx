@@ -5,6 +5,7 @@ import nishikantImg from "../../assets/nishikant.jpg";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
+import Logo from "../../components/common/Logo";
 
 // ─── Shared animation variants ───────────────────────────────────────────────
 const fadeUp = {
@@ -279,21 +280,7 @@ export default function Login() {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-                        <motion.div
-                          whileHover={{ rotate: 5, scale: 1.08 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                          style={{
-                            width: 48, height: 48, borderRadius: 14,
-                            background: "linear-gradient(135deg,#10b981,#059669)",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            boxShadow: "0 0 20px rgba(16,185,129,0.3)",
-                          }}
-                        >
-                          <svg width="26" height="26" fill="none" viewBox="0 0 24 24">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity="0.25"/>
-                            <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
-                          </svg>
-                        </motion.div>
+                        <Logo collapsed size={40} />
                         <div>
                           <div style={{ color: "var(--text-primary)", fontWeight: 800, fontSize: 19 }}>Unified Healthcare System</div>
                           <div style={{ color: "#10b981", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>UHCS · v2.0</div>
@@ -401,7 +388,7 @@ export default function Login() {
                         style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap", position: "relative", zIndex: 1 }}
                       >
                         {[
-                          { label: "🌐 Portfolio", href: "https://nishikant-dev.vercel.app/" },
+                          { label: "🌐 Portfolio", href: "https://nishikant-kshirsagar.is-a.dev" },
                           { label: "✉️ Email",     href: "mailto:nishikantkshirsagar22@gmail.com" },
                         ].map(l => (
                           <motion.a
@@ -471,7 +458,7 @@ export default function Login() {
               >
                 {[
                   { label: "Email",     email: "kshirsagarnishikant45@gmail.com"  },
-                  { label: "Alt Email", email: "nishikantkshirsagar22@gmail.com"  },
+            
                 ].map(c => (
                   <motion.a
                     key={c.label} href={`mailto:${c.email}`}
@@ -522,21 +509,7 @@ export default function Login() {
             transition={{ delay: 0.1, duration: 0.5 }}
             className="flex items-center gap-3 mb-10"
           >
-            <motion.div
-              whileHover={{ rotate: 8, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: "#10b981" }}
-            >
-              <svg width="22" height="22" fill="none" viewBox="0 0 24 24">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" opacity="0.3"/>
-                <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
-              </svg>
-            </motion.div>
-            <div>
-              <div className="font-bold text-lg tracking-tight" style={{ color: "var(--text-primary)" }}>UHCS</div>
-              <div className="text-xs" style={{ color: "#4b7a62" }}>Unified Healthcare System</div>
-            </div>
+            <Logo subtitle="Unified Healthcare System" size={38} wordmarkSize={19} subtitleSize={12} />
           </motion.div>
 
           <motion.h1
@@ -680,12 +653,7 @@ export default function Login() {
           className="w-full max-w-sm"
         >
           <motion.div variants={fadeUp} className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#10b981" }}>
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-                <path d="M11 7h2v4h4v2h-4v4h-2v-4H7v-2h4z" fill="white"/>
-              </svg>
-            </div>
-            <span className="font-bold text-base" style={{ color: "var(--text-primary)" }}>UHCS</span>
+            <Logo size={30} wordmarkSize={16} />
           </motion.div>
 
           <motion.div variants={fadeUp} className="flex items-center gap-3 mb-4">
