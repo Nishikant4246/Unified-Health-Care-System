@@ -14,15 +14,28 @@ import { useId } from "react";
  *   size          – mark width in px (default 32)
  *   wordmarkSize  – "UHCS" font size in px (default 14)
  *   subtitleSize  – subtitle font size in px (default 11)
+ *
+ * The whole lockup is scaled from one place:
+ *   SCALE            – auth pages (login / register), ~15% up from the prior 1.12
+ *   DASHBOARD_SCALE  – sidebars (inDashboard), the prior 1.12 + ~10%
  */
+const SCALE = 1.288;
+const DASHBOARD_SCALE = 1.232;
+
 export default function Logo({
   subtitle,
   collapsed = false,
+  inDashboard = false,
   size = 32,
   wordmarkSize = 14,
   subtitleSize = 11,
 }) {
   const gid = useId();
+  const s = inDashboard ? DASHBOARD_SCALE : SCALE;
+  const markW = Math.round(size * s);
+  const markH = Math.round((size * s * 26) / 24);
+  const wmSize = Math.round(wordmarkSize * s);
+  const stSize = Math.round(subtitleSize * s);
   const shield =
     "M12 1.6c-.32 0-.63.06-.92.18L4.05 4.62C3.42 4.88 3 5.5 3 6.18v6.4c0 5.52 3.64 9.47 8.36 11.63.41.19.87.19 1.28 0C17.36 22.05 21 18.1 21 12.58v-6.4c0-.68-.42-1.3-1.05-1.56l-7.03-2.84c-.29-.12-.6-.18-.92-.18Z";
 
@@ -38,8 +51,8 @@ export default function Logo({
         }}
       >
         <svg
-          width={size}
-          height={Math.round((size * 26) / 24)}
+          width={markW}
+          height={markH}
           viewBox="0 0 24 26"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +105,7 @@ export default function Logo({
         <div>
           <div
             style={{
-              fontSize: wordmarkSize,
+              fontSize: wmSize,
               fontWeight: 800,
               letterSpacing: "0.03em",
               color: "var(--text-primary)",
@@ -101,7 +114,7 @@ export default function Logo({
             UHCS
           </div>
           {subtitle && (
-            <div style={{ fontSize: subtitleSize, fontWeight: 600, color: "#C9A84C" }}>
+            <div style={{ fontSize: stSize, fontWeight: 600, color: "#C9A84C" }}>
               {subtitle}
             </div>
           )}

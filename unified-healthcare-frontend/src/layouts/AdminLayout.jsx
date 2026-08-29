@@ -22,7 +22,7 @@ function SidebarContent({ user, logout, collapsed, onNavClick }) {
       <div style={{ height: 3, background: "linear-gradient(90deg,#A07830,#C9A84C,#F0D98C,#C9A84C,#A07830)", flexShrink: 0 }} />
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 16px", borderBottom: "1px solid #1A2E45", flexShrink: 0 }}>
-        <Logo subtitle={t('adminPanel')} collapsed={collapsed} />
+        <Logo subtitle={t('adminPanel')} collapsed={collapsed} inDashboard />
       </div>
 
       <nav style={{ padding: "10px 10px", flex: 1, overflowY: "auto" }}>

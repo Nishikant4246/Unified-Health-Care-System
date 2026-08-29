@@ -28,7 +28,7 @@ function SidebarContent({ user, logout, collapsed, onNavClick }) {
 
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 16px", borderBottom: "1px solid #1A2E45", flexShrink: 0 }}>
-        <Logo subtitle={t('patientPortal')} collapsed={collapsed} />
+        <Logo subtitle={t('patientPortal')} collapsed={collapsed} inDashboard />
       </div>
 
       {/* Nav */}
