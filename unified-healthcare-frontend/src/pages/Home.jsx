@@ -294,8 +294,6 @@ export default function Home() {
           <div
             style={{
               position: "relative",
-              maxWidth: 1180,
-              marginInline: "auto",
               display: "flex",
               alignItems: "center",
               gap: "clamp(24px, 6vw, 72px)",
@@ -306,7 +304,7 @@ export default function Home() {
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            style={{ flex: "1 1 440px", minWidth: 0, paddingLeft: "clamp(0px, 3vw, 40px)" }}
+            style={{ flex: "1 1 440px", minWidth: 0 }}
           >
             <motion.div
               variants={reveal}
@@ -523,34 +521,13 @@ export default function Home() {
             borderTop: `2px solid ${GOLD}`,
           }}
         >
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 20, justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div style={{ maxWidth: 340 }}>
-              <Logo subtitle="Unified Health Care System" size={26} wordmarkSize={14} subtitleSize={9} />
-              <p style={{ fontSize: 12, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 8 }}>
-                Digitising and centralising patient medical history across hospitals and
-                clinics — for continuity of care, fewer duplicate tests, and better
-                diagnosis, with role-based data security.
-              </p>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontSize: 10.5,
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  fontWeight: 700,
-                  color: "var(--text-secondary)",
-                  margintop: 19,
-                  marginBottom: 4,
-                }}
-              >
-                Developer
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                Nishikant Vitthal Kshirsagar
-              </div>
-              
-            </div>
+          <div style={{ maxWidth: 340 }}>
+            <Logo subtitle="Unified Health Care System" size={26} wordmarkSize={14} subtitleSize={9} />
+            <p style={{ fontSize: 12, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 8 }}>
+              Digitising and centralising patient medical history across hospitals and
+              clinics — for continuity of care, fewer duplicate tests, and better
+              diagnosis, with role-based data security.
+            </p>
           </div>
           <div
             style={{
@@ -559,9 +536,25 @@ export default function Home() {
               borderTop: "1px solid var(--border)",
               fontSize: 11.5,
               color: "var(--text-secondary)",
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "6px 16px",
+              justifyContent: "space-between",
+              alignItems: "center",
             }}
           >
-            <b>© 2026 Unified Health Care System.</b> <b>This is Academic project</b>.
+            <span>
+              <b>© 2026 Unified Health Care System.</b> <b>This is Academic project</b>.
+            </span>
+            <span>
+              <span style={{ letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>
+                Developer
+              </span>{" "}
+              ·{" "}
+              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>
+                Nishikant Vitthal Kshirsagar
+              </span>
+            </span>
           </div>
         </footer>
       </motion.div>
