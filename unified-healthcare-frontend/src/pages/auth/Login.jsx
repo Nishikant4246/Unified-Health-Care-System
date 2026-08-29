@@ -134,6 +134,18 @@ export default function Login() {
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
+          <Link
+            to="/"
+            style={{
+              position: "absolute", top: 14, left: 16, zIndex: 60,
+              display: "flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 600, textDecoration: "none",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <span style={{ fontSize: 15 }}></span> Home
+          </Link>
+
           <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8, alignItems: "center", zIndex: 60 }}>
             <select value={lang} onChange={(e) => setLang(e.target.value)} style={{ background: "transparent", color: "var(--text-secondary)", border: "1px solid var(--border)", padding: "6px 8px", borderRadius: 8 }}>
               <option value="en">{t('languageEnglish')}</option>

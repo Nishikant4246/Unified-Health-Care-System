@@ -12,12 +12,12 @@ function ProtectedRoute({ children, role }) {
 
   // Not logged in
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   // Role mismatch
   if (role && user.role !== role) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;

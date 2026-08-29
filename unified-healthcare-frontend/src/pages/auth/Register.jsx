@@ -113,7 +113,7 @@ export default function Register() {
     try {
       await api.post("/auth/register", { ...form, role: "patient" });
       setSuccess(true);
-      setTimeout(() => navigate("/"), 2500);
+      setTimeout(() => navigate("/login"), 2500);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
@@ -485,7 +485,7 @@ export default function Register() {
 
           <p className="mt-8 text-center text-sm" style={{ color: "var(--text-secondary)" }}>
             {t("noAccount")}{" "}
-            <Link to="/" className="font-semibold" style={{ color: "#10b981" }}>{t("signIn")}</Link>
+            <Link to="/login" className="font-semibold" style={{ color: "#10b981" }}>{t("signIn")}</Link>
           </p>
           <p className="mt-3 text-center text-sm" style={{ color: "var(--text-secondary)" }}>
             Are you a doctor?{" "}

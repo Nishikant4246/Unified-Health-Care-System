@@ -214,7 +214,7 @@ export default function RegisterDoctor() {
               <span className="text-sm font-medium" style={{ color: "#fbbf24" }}>Awaiting Admin Approval</span>
             </div>
           </div>
-          <Link to="/" className="inline-block w-full py-3 rounded-xl font-semibold text-sm text-center"
+          <Link to="/login" className="inline-block w-full py-3 rounded-xl font-semibold text-sm text-center"
             style={{ background: "#10b981", color: "white" }}>
             Back to Login
           </Link>
@@ -713,7 +713,7 @@ export default function RegisterDoctor() {
 
           <p className="mt-6 text-center text-sm" style={{ color: "#94a3b8" }}>
             Already approved?{" "}
-            <Link to="/" className="font-semibold" style={{ color: "#3b82f6" }}>Sign in here</Link>
+            <Link to="/login" className="font-semibold" style={{ color: "#3b82f6" }}>Sign in here</Link>
           </p>
         </div>
       </div>
