@@ -111,9 +111,51 @@ export const uploadOldReport = async (req, res) => {
 // ================= UPDATE PROFILE =================
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const { name, phone, dateOfBirth, heightCm, weightKg } = req.body;
+
+    // Only touch fields that were actually sent — keeps everything else intact
+    const update = {};
+    if (name !== undefined) update.name = name;
+    if (phone !== undefined) update.phone = phone;
+
+    if (dateOfBirth !== undefined) {
+      if (!dateOfBirth) {
+        update.dateOfBirth = null;
+      } else {
+        const d = new Date(dateOfBirth);
+        if (isNaN(d.getTime()) || d > new Date() || d < new Date("1900-01-01")) {
+          return res.status(400).json({ message: "Enter a valid date of birth" });
+        }
+        update.dateOfBirth = d;
+      }
+    }
+
+    if (heightCm !== undefined) {
+      if (heightCm === "" || heightCm === null) {
+        update.heightCm = null;
+      } else {
+        const h = Number(heightCm);
+        if (!Number.isFinite(h) || h < 30 || h > 300) {
+          return res.status(400).json({ message: "Enter a valid height in cm (30–300)" });
+        }
+        update.heightCm = h;
+      }
+    }
+
+    if (weightKg !== undefined) {
+      if (weightKg === "" || weightKg === null) {
+        update.weightKg = null;
+      } else {
+        const w = Number(weightKg);
+        if (!Number.isFinite(w) || w < 1 || w > 600) {
+          return res.status(400).json({ message: "Enter a valid weight in kg (1–600)" });
+        }
+        update.weightKg = w;
+      }
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
-      req.user._id, { name, phone }, { new: true, runValidators: true }
+      req.user._id, update, { new: true, runValidators: true }
     ).select("-password");
     res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {

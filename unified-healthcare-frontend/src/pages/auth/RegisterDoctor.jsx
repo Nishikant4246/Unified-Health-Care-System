@@ -72,6 +72,7 @@ export default function RegisterDoctor() {
   const [error,     setError]     = useState("");
   const [showPass,  setShowPass]  = useState(false);
   const [touched,   setTouched]   = useState({});
+  const [licenseFile, setLicenseFile] = useState(null);
 
   const [form, setForm] = useState({
     name: "", email: "", phone: "", password: "", gender: "",
@@ -143,6 +144,7 @@ export default function RegisterDoctor() {
       if (!form.licenseNumber.trim())                         { setError("Medical license number is required"); return false; }
       if (!form.experience || isNaN(form.experience))         { setError("Enter valid years of experience"); return false; }
       if (!form.hospital.trim())                              { setError("Hospital / Clinic name is required"); return false; }
+      if (!licenseFile)                                       { setError("Please upload a photo or PDF of your medical license"); return false; }
     }
     if (step === 3) {
       const valid = form.education.filter((e) => e.degree && e.institution && e.year);
@@ -160,11 +162,24 @@ export default function RegisterDoctor() {
     setLoading(true);
     try {
       const validEducation = form.education.filter((e) => e.degree && e.institution && e.year);
-      await api.post("/auth/register-doctor", {
-        ...form,
-        experience:      Number(form.experience),
-        consultationFee: Number(form.consultationFee) || 0,
-        education:       validEducation,
+      const data = new FormData();
+      data.append("name",            form.name);
+      data.append("email",           form.email);
+      data.append("phone",           form.phone);
+      data.append("password",        form.password);
+      data.append("gender",          form.gender || "");
+      data.append("specialization",  form.specialization);
+      data.append("qualification",   form.qualification);
+      data.append("licenseNumber",   form.licenseNumber);
+      data.append("experience",      Number(form.experience));
+      data.append("hospital",        form.hospital);
+      data.append("consultationFee", Number(form.consultationFee) || 0);
+      data.append("bio",             form.bio || "");
+      data.append("education",        JSON.stringify(validEducation));
+      if (licenseFile) data.append("licenseImage", licenseFile);
+
+      await api.post("/auth/register-doctor", data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       setSubmitted(true);
     } catch (err) {
@@ -511,6 +526,35 @@ export default function RegisterDoctor() {
                 {fieldError("licenseNumber") && touched.licenseNumber && (
                   <p className="text-xs mt-1" style={{ color: "#ef4444" }}>⚠ {fieldError("licenseNumber")}</p>
                 )}
+              </div>
+
+              {/* Medical License — photo / scan (required for verification) */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
+                  Medical License — Photo / Scan
+                  <SecureBadge tip="Upload a clear photo or PDF scan of your medical registration certificate. Only admins can view it, and it is used to verify you are a registered practitioner." />
+                </label>
+                <div className="relative border-2 border-dashed rounded-xl p-4 text-center transition-all"
+                  style={{ borderColor: licenseFile ? "#10b981" : "#2a2d3e" }}>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,application/pdf"
+                    onChange={(e) => setLicenseFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                  {licenseFile ? (
+                    <p className="text-sm font-medium" style={{ color: "#10b981" }}>
+                      📎 {licenseFile.name}
+                    </p>
+                  ) : (
+                    <p className="text-sm" style={{ color: "#94a3b8" }}>
+                      Click to upload your license certificate (JPG, PNG or PDF)
+                    </p>
+                  )}
+                </div>
+                <p className="text-xs mt-1" style={{ color: "#64748b" }}>
+                  Required — helps the admin team confirm your registration before approval.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

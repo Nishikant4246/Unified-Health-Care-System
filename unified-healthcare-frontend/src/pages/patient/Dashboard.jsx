@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { useLanguage } from "../../context/LanguageContext";
+import { calcAge, calcBMI, bmiCategory } from "../../utils/health";
 
 // ─── Golden Design Tokens ──────────────────────────────────────
 const GOLD       = "#C9A84C";
@@ -45,6 +46,11 @@ export default function PatientDashboard() {
   if (!user) return (
     <div className="text-center mt-20" style={{ color: "var(--text-primary)" }}>{t('loading')}</div>
   );
+
+  const age    = calcAge(user?.dateOfBirth);
+  const bmi    = calcBMI(user?.heightCm, user?.weightKg);
+  const bmiCat = bmiCategory(bmi);
+  const hasHealthInfo = user?.dateOfBirth || user?.heightCm || user?.weightKg;
 
   const actions = [
     { label: t('medicalTimeline'), desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "🏥" },
@@ -119,6 +125,45 @@ export default function PatientDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* ── Health Snapshot (DOB · Age · BMI) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mb-6 p-5 rounded-2xl"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Health Snapshot</span>
+          <button onClick={() => navigate("/patient/profile")}
+            className="text-xs px-3 py-1 rounded-lg"
+            style={{ background: "#a855f718", color: "#a855f7", border: "1px solid #a855f730" }}>
+            {hasHealthInfo ? "Update" : "Add details"}
+          </button>
+        </div>
+        {hasHealthInfo ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: "Age",    value: age != null ? `${age} yrs` : "—" },
+              { label: "Height", value: user?.heightCm ? `${user.heightCm} cm` : "—" },
+              { label: "Weight", value: user?.weightKg ? `${user.weightKg} kg` : "—" },
+              { label: "BMI",    value: bmi != null ? bmi : "—", cat: bmiCat },
+            ].map((item) => (
+              <div key={item.label} className="p-3 rounded-xl text-center" style={{ background: "var(--bg-hover)" }}>
+                <div className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>{item.value}</div>
+                <div className="text-xs" style={{ color: "#64748b" }}>{item.label}</div>
+                {item.cat && (
+                  <div className="text-xs mt-0.5 font-medium" style={{ color: item.cat.color }}>{item.cat.label}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs" style={{ color: "#64748b" }}>
+            Add your date of birth, height and weight in your profile to track age and BMI.
+          </p>
+        )}
+      </motion.div>
 
       {/* ══════════════════════════════════════════════════════
           ── GOLDEN Find Nearby Doctors Card ──

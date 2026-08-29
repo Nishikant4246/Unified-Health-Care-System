@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import MedicalRecord from "../models/MedicalRecord.js";
+import cloudinary from "../config/cloudinary.js";
+import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";
 import sendEmail from "../utils/sendEmail.js";
 import {
   doctorCreatedByAdminEmail,
@@ -67,6 +69,29 @@ export const createDoctor = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // education arrives as a JSON string when sent via multipart/form-data
+    let educationList = Array.isArray(education) ? education : [];
+    if (typeof education === "string") {
+      try {
+        const parsed = JSON.parse(education);
+        educationList = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        educationList = [];
+      }
+    }
+
+    // Optional uploaded license proof (image or PDF)
+    let licenseImage;
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(req.file, "uhcs/licenses");
+      licenseImage = {
+        url:        uploaded.secure_url,
+        publicId:   uploaded.public_id,
+        fileType:   req.file.mimetype,
+        uploadedAt: new Date(),
+      };
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const uniqueId = await generateUniqueId("doctor");
 
@@ -85,11 +110,12 @@ export const createDoctor = async (req, res) => {
       hospital: hospital || "",
       consultationFee: Number(consultationFee) || 0,
       bio: bio || "",
-      education: Array.isArray(education) ? education : [],
+      education: educationList,
       status: "approved",
       verificationMethod: "admin",
       adminVerifiedBy: req.user._id,
       verifiedAt: new Date(),
+      ...(licenseImage ? { licenseImage } : {}),
     });
 
     // ── Email: Account approved (admin-created doctor) ────
@@ -278,6 +304,71 @@ export const verifyDoctorNMC = async (req, res) => {
       reachable,
       results,
     });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= UPDATE DOCTOR PROFILE =================
+// Admin edits a doctor's profile fields and/or (re)uploads the license image.
+// Only fields that are explicitly provided are changed — everything else is kept.
+export const updateDoctorProfile = async (req, res) => {
+  try {
+    const doctor = await User.findById(req.params.id);
+    if (!doctor || doctor.role !== "doctor") {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    const textFields = [
+      "name", "phone", "gender", "specialization",
+      "qualification", "licenseNumber", "hospital", "bio",
+    ];
+    for (const field of textFields) {
+      const value = req.body[field];
+      if (value !== undefined && value !== "") doctor[field] = value;
+    }
+
+    if (req.body.experience !== undefined && req.body.experience !== "") {
+      const exp = Number(req.body.experience);
+      if (Number.isFinite(exp) && exp >= 0) doctor.experience = exp;
+    }
+    if (req.body.consultationFee !== undefined && req.body.consultationFee !== "") {
+      const fee = Number(req.body.consultationFee);
+      if (Number.isFinite(fee) && fee >= 0) doctor.consultationFee = fee;
+    }
+    if (req.body.education !== undefined) {
+      let ed = req.body.education;
+      if (typeof ed === "string") {
+        try { ed = JSON.parse(ed); } catch { ed = null; }
+      }
+      if (Array.isArray(ed)) doctor.education = ed;
+    }
+
+    // Optional new / replacement license image
+    if (req.file) {
+      const uploaded = await uploadBufferToCloudinary(req.file, "uhcs/licenses");
+      const oldPublicId = doctor.licenseImage?.publicId;
+      const oldWasPdf = doctor.licenseImage?.fileType === "application/pdf";
+      doctor.licenseImage = {
+        url:        uploaded.secure_url,
+        publicId:   uploaded.public_id,
+        fileType:   req.file.mimetype,
+        uploadedAt: new Date(),
+      };
+      if (oldPublicId) {
+        cloudinary.uploader
+          .destroy(oldPublicId, { resource_type: oldWasPdf ? "raw" : "image" })
+          .catch(() => {});
+      }
+    }
+
+    await doctor.save();
+
+    const updated = await User.findById(doctor._id)
+      .select("-password")
+      .populate("adminVerifiedBy", "name");
+
+    res.status(200).json({ message: "Doctor profile updated", doctor: updated });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

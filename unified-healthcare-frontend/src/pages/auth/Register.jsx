@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useLanguage } from "../../context/LanguageContext";
 import Logo from "../../components/common/Logo";
+import { calcAge, calcBMI, bmiCategory } from "../../utils/health";
 
 // ── Password strength ─────────────────────────────────────────
 function getPasswordStrength(pw) {
@@ -53,7 +54,7 @@ const inputStyle = {
 export default function Register() {
   const { t } = useLanguage();
   const navigate  = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", dateOfBirth: "", heightCm: "", weightKg: "" });
   const [error,    setError]    = useState("");
   const [loading,  setLoading]  = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -81,6 +82,9 @@ export default function Register() {
         if (!/[A-Z]/.test(form.password)) return "Add at least one uppercase letter";
         if (!/[0-9]/.test(form.password)) return "Add at least one number";
         return "";
+      case "dateOfBirth":
+        if (!form.dateOfBirth) return "Date of birth is required";
+        return calcAge(form.dateOfBirth) == null ? "Enter a valid date of birth" : "";
       default: return "";
     }
   };
@@ -88,7 +92,8 @@ export default function Register() {
   const isFormValid = () =>
     !fieldError("name") && !fieldError("email") &&
     !fieldError("phone") && !fieldError("password") &&
-    form.name && form.email && form.phone && form.password;
+    !fieldError("dateOfBirth") &&
+    form.name && form.email && form.phone && form.password && form.dateOfBirth;
 
   const pwStrength = getPasswordStrength(form.password);
 
@@ -97,7 +102,7 @@ export default function Register() {
     setError("");
 
     // touch all fields
-    setTouched({ name: true, email: true, phone: true, password: true });
+    setTouched({ name: true, email: true, phone: true, password: true, dateOfBirth: true });
 
     if (!isFormValid()) {
       setError("Please fix the errors above before submitting.");
@@ -381,6 +386,79 @@ export default function Register() {
                 <p className="text-xs mt-1" style={{ color: "#ef4444" }}>⚠ {fieldError("password")}</p>
               )}
             </div>
+
+            {/* Date of Birth */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
+                Date of Birth
+                <SecureBadge tip="Used to calculate your age on medical records. Required." />
+              </label>
+              <input
+                type="date"
+                value={form.dateOfBirth}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => set("dateOfBirth", e.target.value)}
+                onBlur={() => touch("dateOfBirth")}
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                style={{ ...inputStyle, borderColor: fieldError("dateOfBirth") ? "#ef4444" : "var(--border)" }}
+                onFocus={(e) => (e.target.style.borderColor = "#10b981")}
+              />
+              {form.dateOfBirth && calcAge(form.dateOfBirth) != null && (
+                <p className="text-xs mt-1" style={{ color: "#64748b" }}>
+                  Age: {calcAge(form.dateOfBirth)} years
+                </p>
+              )}
+              {fieldError("dateOfBirth") && (
+                <p className="text-xs mt-1" style={{ color: "#ef4444" }}>⚠ {fieldError("dateOfBirth")}</p>
+              )}
+            </div>
+
+            {/* Height + Weight (optional) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
+                  Height (cm)
+                  <span className="normal-case font-normal" style={{ color: "#64748b" }}> · optional</span>
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={form.heightCm}
+                  onChange={(e) => set("heightCm", e.target.value)}
+                  placeholder="e.g. 170"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                  style={inputStyle}
+                  onFocus={(e) => (e.target.style.borderColor = "#10b981")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
+                  Weight (kg)
+                  <span className="normal-case font-normal" style={{ color: "#64748b" }}> · optional</span>
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={form.weightKg}
+                  onChange={(e) => set("weightKg", e.target.value)}
+                  placeholder="e.g. 65"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                  style={inputStyle}
+                  onFocus={(e) => (e.target.style.borderColor = "#10b981")}
+                  onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+                />
+              </div>
+            </div>
+            {(() => {
+              const b = calcBMI(form.heightCm, form.weightKg);
+              const c = bmiCategory(b);
+              return b != null ? (
+                <p className="text-xs" style={{ color: "#64748b" }}>
+                  BMI: <span style={{ color: c?.color, fontWeight: 600 }}>{b} · {c?.label}</span>
+                </p>
+              ) : null;
+            })()}
 
             {/* Submit */}
             <button

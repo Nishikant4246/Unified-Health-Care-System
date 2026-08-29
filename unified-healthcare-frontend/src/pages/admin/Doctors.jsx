@@ -124,11 +124,19 @@ export default function AdminDoctors() {
   // NMC state
   const [nmcResult, setNmcResult] = useState(null);
   const [nmcLoading, setNmcLoading] = useState(false);
+  const [nmcSearch, setNmcSearch] = useState("");
 
   // Suspend modal state
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [suspendReason, setSuspendReason] = useState("");
   const [suspending, setSuspending] = useState(false);
+
+  // License image preview + inline profile edit
+  const [licensePreview, setLicensePreview] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [editLicenseFile, setEditLicenseFile] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Search / filter
   const [search, setSearch] = useState("");
@@ -214,6 +222,9 @@ export default function AdminDoctors() {
     setSelectedDoctor(doc);
     setActiveTab("info");
     setNmcResult(null);
+    setNmcSearch(doc.name || "");
+    setEditMode(false);
+    setLicensePreview(null);
     setProfileLoading(true);
     try {
       const res = await api.get(`/admin/doctor/${doc._id}`);
@@ -308,28 +319,72 @@ export default function AdminDoctors() {
       setSuspending(false);
     }
   };
-  // NMC Vefication
- const checkNMC = async (name) => {
-  setNmcLoading(true);
-  setNmcResult(null);
-  try {
-    const response = await fetch(
-      `https://www.nmc.org.in/MCIRest/open/getPaginatedData?service=getDoctorOrHospitalByName&doctor=${encodeURIComponent(name.trim())}&pageNo=0&pageSize=10`,
-      { headers: { Accept: "application/json" } }
-    );
-    if (!response.ok) {
-      setNmcResult({ found: false, reachable: false, results: [] });
+
+  // ── Inline profile edit (fields + license image) ──────────
+  const startEditProfile = () => {
+    const d = profile?.doctor;
+    if (!d) return;
+    setEditForm({
+      name: d.name || "",
+      phone: d.phone || "",
+      specialization: d.specialization || "",
+      qualification: d.qualification || "",
+      licenseNumber: d.licenseNumber || "",
+      hospital: d.hospital || "",
+      experience: d.experience ?? "",
+      consultationFee: d.consultationFee ?? "",
+      bio: d.bio || "",
+    });
+    setEditLicenseFile(null);
+    setEditMode(true);
+  };
+
+  const saveEditProfile = async () => {
+    if (!selectedDoctor || !editForm) return;
+    setSavingEdit(true);
+    try {
+      const data = new FormData();
+      Object.entries(editForm).forEach(([k, v]) => data.append(k, v ?? ""));
+      if (editLicenseFile) data.append("licenseImage", editLicenseFile);
+
+      const res = await api.put(
+        `/admin/doctor/${selectedDoctor._id}/profile`,
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+      const updated = res.data.doctor;
+      setProfile((prev) => ({ ...prev, doctor: updated }));
+      setSelectedDoctor((prev) => ({ ...prev, ...updated }));
+      setEditMode(false);
+      setEditLicenseFile(null);
+      toast.success("Doctor profile updated");
+      fetchDoctors();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update profile");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+  // NMC verification — runs server-side (GET /admin/verify-nmc) so it is not
+  // blocked by browser CORS the way a direct nmc.org.in fetch is.
+  const checkNMC = async (name) => {
+    const q = (name || "").trim();
+    if (q.length < 3) {
+      toast.error("Enter at least 3 characters to search the NMC register");
       return;
     }
-    const data = await response.json();
-    const results = data?.content || [];
-    setNmcResult({ found: results.length > 0, reachable: true, results });
-  } catch {
-    setNmcResult({ found: false, reachable: false, results: [] });
-  } finally {
-    setNmcLoading(false);
-  }
-};
+    setNmcLoading(true);
+    setNmcResult(null);
+    try {
+      const res = await api.get("/admin/verify-nmc", { params: { name: q } });
+      // backend returns { found, reachable, results }
+      setNmcResult(res.data || { found: false, reachable: false, results: [] });
+    } catch {
+      setNmcResult({ found: false, reachable: false, results: [] });
+    } finally {
+      setNmcLoading(false);
+    }
+  };
 
   const setEducation = (index, key, value) => {
     const updated = [...form.education];
@@ -816,6 +871,8 @@ export default function AdminDoctors() {
                       setSelectedDoctor(null);
                       setProfile(null);
                       setNmcResult(null);
+                      setEditMode(false);
+                      setLicensePreview(null);
                     }}
                     className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-xs"
                     style={{
@@ -933,8 +990,127 @@ export default function AdminDoctors() {
                     </div>
                   ) : profile ? (
                     <>
+                      {/* ── DETAILS TAB — EDIT MODE ── */}
+                      {activeTab === "info" && editMode && editForm && (
+                        <div className="space-y-3">
+                          <p
+                            className="text-xs font-semibold uppercase tracking-wider"
+                            style={{ color: "#64748b" }}>
+                            Edit Doctor Profile
+                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <input
+                              placeholder="Full name"
+                              value={editForm.name}
+                              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}
+                            />
+                            <input
+                              placeholder="Phone"
+                              value={editForm.phone}
+                              onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}
+                            />
+                            <select
+                              value={editForm.specialization}
+                              onChange={(e) => setEditForm({ ...editForm, specialization: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}>
+                              <option value="">Specialization</option>
+                              {specializations.map((s) => (
+                                <option key={s} value={s}>{s}</option>
+                              ))}
+                            </select>
+                            <select
+                              value={editForm.qualification}
+                              onChange={(e) => setEditForm({ ...editForm, qualification: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}>
+                              <option value="">Qualification</option>
+                              {qualifications.map((q) => (
+                                <option key={q} value={q}>{q}</option>
+                              ))}
+                            </select>
+                            <input
+                              placeholder="License number"
+                              value={editForm.licenseNumber}
+                              onChange={(e) => setEditForm({ ...editForm, licenseNumber: e.target.value.toUpperCase() })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none font-mono"
+                              style={inputStyle}
+                            />
+                            <input
+                              placeholder="Hospital / Clinic"
+                              value={editForm.hospital}
+                              onChange={(e) => setEditForm({ ...editForm, hospital: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}
+                            />
+                            <input
+                              type="number"
+                              placeholder="Experience (yrs)"
+                              value={editForm.experience}
+                              onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}
+                            />
+                            <input
+                              type="number"
+                              placeholder="Consultation fee (₹)"
+                              value={editForm.consultationFee}
+                              onChange={(e) => setEditForm({ ...editForm, consultationFee: e.target.value })}
+                              className="px-3 py-2.5 rounded-xl text-sm outline-none"
+                              style={inputStyle}
+                            />
+                          </div>
+                          <textarea
+                            placeholder="Professional bio"
+                            rows={3}
+                            value={editForm.bio}
+                            onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                            className="w-full px-3 py-2.5 rounded-xl text-sm outline-none resize-none"
+                            style={inputStyle}
+                          />
+                          <div>
+                            <div className="text-xs mb-1" style={{ color: "#64748b" }}>
+                              {profile.doctor.licenseImage?.url
+                                ? "Replace license image (JPG, PNG or PDF)"
+                                : "Upload license image (JPG, PNG or PDF)"}
+                            </div>
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,application/pdf"
+                              onChange={(e) => setEditLicenseFile(e.target.files?.[0] || null)}
+                              className="text-xs"
+                              style={{ color: "var(--text-secondary)" }}
+                            />
+                            {editLicenseFile && (
+                              <p className="text-xs mt-1" style={{ color: "#10b981" }}>
+                                📎 {editLicenseFile.name}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2 pt-1">
+                            <button
+                              onClick={saveEditProfile}
+                              disabled={savingEdit}
+                              className="text-xs px-4 py-2 rounded-lg font-semibold"
+                              style={{ background: "#10b981", color: "white", opacity: savingEdit ? 0.7 : 1 }}>
+                              {savingEdit ? "Saving..." : "Save Changes"}
+                            </button>
+                            <button
+                              onClick={() => { setEditMode(false); setEditLicenseFile(null); }}
+                              className="text-xs px-4 py-2 rounded-lg font-medium"
+                              style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* ── DETAILS TAB ── */}
-                      {activeTab === "info" && (
+                      {activeTab === "info" && !editMode && (
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-3">
                             {[
@@ -1102,6 +1278,15 @@ export default function AdminDoctors() {
                                 </button>
                               )}
                               <button
+                                onClick={startEditProfile}
+                                className="text-xs px-4 py-2 rounded-lg font-medium"
+                                style={{
+                                  background: "rgba(59,130,246,0.12)",
+                                  color: "#3b82f6",
+                                }}>
+                                ✎ Edit Profile
+                              </button>
+                              <button
                                 onClick={() =>
                                   handleDelete(
                                     selectedDoctor._id,
@@ -1214,6 +1399,34 @@ export default function AdminDoctors() {
                                   : "Missing"}
                               </span>
                             </div>
+
+                            {/* License document (image / PDF) */}
+                            <div
+                              className="mt-3 pt-3 flex items-center justify-between"
+                              style={{ borderTop: "1px solid rgba(59,130,246,0.15)" }}>
+                              <div>
+                                <div className="text-xs font-semibold" style={{ color: "#3b82f6" }}>
+                                  License Document
+                                </div>
+                                <div className="text-xs mt-0.5" style={{ color: "#64748b" }}>
+                                  Photo / scan uploaded by doctor
+                                </div>
+                              </div>
+                              {profile.doctor.licenseImage?.url ? (
+                                <button
+                                  onClick={() => setLicensePreview(profile.doctor.licenseImage)}
+                                  className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                                  style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6" }}>
+                                  🔍 Show Image
+                                </button>
+                              ) : (
+                                <span
+                                  className="text-xs px-2 py-1 rounded-full font-medium"
+                                  style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                                  Not uploaded
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           {/* NMC Verification */}
@@ -1223,30 +1436,42 @@ export default function AdminDoctors() {
                               background: "rgba(168,85,247,0.06)",
                               border: "1px solid rgba(168,85,247,0.15)",
                             }}>
-                            <div className="flex items-center justify-between mb-3">
-                              <div>
-                                <div
-                                  className="text-xs font-semibold"
-                                  style={{ color: "#a855f7" }}>
-                                  NMC Register Check
-                                </div>
-                                <div
-                                  className="text-xs mt-0.5"
-                                  style={{ color: "#64748b" }}>
-                                  National Medical Commission of India
-                                </div>
+                            <div className="mb-3">
+                              <div
+                                className="text-xs font-semibold"
+                                style={{ color: "#a855f7" }}>
+                                NMC Register Check
                               </div>
-                              <button
-                                onClick={() => checkNMC(profile.doctor.name)}
-                                disabled={nmcLoading}
-                                className="text-xs px-3 py-1.5 rounded-lg font-medium transition-opacity"
-                                style={{
-                                  background: "rgba(168,85,247,0.15)",
-                                  color: "#a855f7",
-                                  opacity: nmcLoading ? 0.6 : 1,
-                                }}>
-                                {nmcLoading ? "Checking..." : "Check NMC"}
-                              </button>
+                              <div
+                                className="text-xs mt-0.5 mb-2"
+                                style={{ color: "#64748b" }}>
+                                Searches the Indian Medical Register by name.
+                                Adjust the name if it differs from the doctor's
+                                registered name.
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  value={nmcSearch}
+                                  onChange={(e) => setNmcSearch(e.target.value)}
+                                  onKeyDown={(e) =>
+                                    e.key === "Enter" && checkNMC(nmcSearch)
+                                  }
+                                  placeholder="Name to search in NMC register"
+                                  className="flex-1 px-3 py-1.5 rounded-lg text-xs outline-none"
+                                  style={inputStyle}
+                                />
+                                <button
+                                  onClick={() => checkNMC(nmcSearch)}
+                                  disabled={nmcLoading}
+                                  className="text-xs px-3 py-1.5 rounded-lg font-medium transition-opacity flex-shrink-0"
+                                  style={{
+                                    background: "rgba(168,85,247,0.15)",
+                                    color: "#a855f7",
+                                    opacity: nmcLoading ? 0.6 : 1,
+                                  }}>
+                                  {nmcLoading ? "Checking..." : "Check NMC"}
+                                </button>
+                              </div>
                             </div>
 
                             {/* NMC already verified badge */}
@@ -1284,9 +1509,9 @@ export default function AdminDoctors() {
                                         background: "rgba(245,158,11,0.08)",
                                         color: "#f59e0b",
                                       }}>
-                                      ⚠ NMC server did not respond. This can
-                                      happen due to browser security
-                                      restrictions.
+                                      ⚠ The NMC register could not be reached
+                                      right now. Try again in a moment, or
+                                      verify manually.
                                     </div>
 
                                     <a
@@ -1332,7 +1557,7 @@ export default function AdminDoctors() {
                                     </div>
 
                                     {nmcResult.results
-                                      .slice(0, 3)
+                                      .slice(0, 5)
                                       .map((doc, i) => (
                                         <div
                                           key={i}
@@ -1509,6 +1734,69 @@ export default function AdminDoctors() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ── License Image Preview ──────────────────────────── */}
+      <AnimatePresence>
+        {licensePreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)" }}
+            onClick={() => setLicensePreview(null)}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-3xl p-5 rounded-2xl relative"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              onClick={(e) => e.stopPropagation()}>
+              <button
+                onClick={() => setLicensePreview(null)}
+                className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-xs"
+                style={{ background: "rgba(255,255,255,0.06)", color: "#94a3b8" }}>
+                ✕
+              </button>
+              <h3 className="text-sm font-bold mb-3" style={{ color: "var(--text-primary)" }}>
+                Medical License Document
+              </h3>
+              {licensePreview.fileType === "application/pdf" ? (
+                <iframe
+                  title="Medical license"
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(
+                    licensePreview.url,
+                  )}&embedded=true`}
+                  className="w-full rounded-xl"
+                  style={{ height: "70vh", border: "1px solid var(--border)", background: "var(--bg-hover)" }}
+                />
+              ) : (
+                <img
+                  src={licensePreview.url}
+                  alt="Medical license"
+                  className="w-full rounded-xl"
+                  style={{ maxHeight: "70vh", objectFit: "contain", background: "var(--bg-hover)" }}
+                />
+              )}
+              <div className="flex items-center justify-between mt-3">
+                {licensePreview.uploadedAt ? (
+                  <p className="text-xs" style={{ color: "#64748b" }}>
+                    Uploaded {new Date(licensePreview.uploadedAt).toLocaleString("en-IN")}
+                  </p>
+                ) : <span />}
+                <a
+                  href={licensePreview.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-medium"
+                  style={{ color: "#3b82f6" }}>
+                  Open in new tab ↗
+                </a>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── Suspend Modal ──────────────────────────────────── */}
       <AnimatePresence>

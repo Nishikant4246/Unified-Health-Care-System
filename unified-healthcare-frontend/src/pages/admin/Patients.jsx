@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { TableRowSkeleton } from "../../components/common/Skeleton";
+import { calcAge, calcBMI, bmiCategory, formatDOB } from "../../utils/health";
 
 export default function AdminPatients() {
   const [patients, setPatients] = useState([]);
@@ -232,6 +233,29 @@ export default function AdminPatients() {
                       <div className="grid grid-cols-2 gap-3 mb-6">
                         {[
                           { label: "Phone", value: profile.patient.phone || "Not provided" },
+                          { label: "Date of Birth", value: formatDOB(profile.patient.dateOfBirth) },
+                          {
+                            label: "Age",
+                            value: (() => {
+                              const a = calcAge(profile.patient.dateOfBirth);
+                              return a != null ? `${a} years` : "—";
+                            })(),
+                          },
+                          {
+                            label: "Height / Weight",
+                            value:
+                              (profile.patient.heightCm ? `${profile.patient.heightCm} cm` : "—") +
+                              " / " +
+                              (profile.patient.weightKg ? `${profile.patient.weightKg} kg` : "—"),
+                          },
+                          {
+                            label: "BMI",
+                            value: (() => {
+                              const b = calcBMI(profile.patient.heightCm, profile.patient.weightKg);
+                              const c = bmiCategory(b);
+                              return b != null ? `${b}${c ? ` · ${c.label}` : ""}` : "—";
+                            })(),
+                          },
                           { label: "Total Records", value: profile.totalRecords },
                           { label: "Registered", value: new Date(profile.patient.createdAt).toLocaleDateString("en-IN") },
                           { label: "Patient ID", value: profile.patient.uniqueId },

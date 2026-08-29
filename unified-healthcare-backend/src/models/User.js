@@ -70,6 +70,13 @@ const userSchema = new mongoose.Schema(
     specialization: { type: String, trim: true },
     qualification:  { type: String, trim: true },
     licenseNumber:  { type: String, trim: true },
+    // Uploaded proof of medical license (image or PDF) — Cloudinary
+    licenseImage: {
+      url:        { type: String, default: "" },
+      publicId:   { type: String, default: "" },
+      fileType:   { type: String, default: "" },
+      uploadedAt: { type: Date, default: null },
+    },
     experience:     { type: Number, min: 0, default: 0 },
     hospital:       { type: String, trim: true },
     consultationFee:{ type: Number, default: 0 },
@@ -87,6 +94,8 @@ const userSchema = new mongoose.Schema(
 
     // ─── Patient-Only Fields ─────────────────────────────────
     dateOfBirth: { type: Date },
+    heightCm:    { type: Number, min: 30, max: 300, default: null },  // for BMI
+    weightKg:    { type: Number, min: 1,  max: 600, default: null },  // for BMI
     bloodGroup: {
       type: String,
       enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", ""],

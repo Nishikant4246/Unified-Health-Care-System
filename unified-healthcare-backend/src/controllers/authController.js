@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import sendEmail from "../utils/sendEmail.js";                                    // NEW
 import { patientWelcomeEmail, doctorWelcomeEmail } from "../utils/emailTemplates.js"; // NEW
+import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";       // NEW
 
 // Generate Unique ID
 const generateUniqueId = async (role) => {
@@ -57,6 +58,34 @@ export const registerPatient = async (req, res) => {
     const validationError = validateRegistration({ name, email, password, phone });
     if (validationError) return res.status(400).json({ message: validationError });
 
+    // ── Date of birth (required) + optional height / weight ──
+    const { dateOfBirth, heightCm, weightKg } = req.body;
+    if (!dateOfBirth) {
+      return res.status(400).json({ message: "Date of birth is required" });
+    }
+    const dob = new Date(dateOfBirth);
+    if (isNaN(dob.getTime()) || dob > new Date() || dob < new Date("1900-01-01")) {
+      return res.status(400).json({ message: "Enter a valid date of birth" });
+    }
+
+    let heightVal = null;
+    if (heightCm !== undefined && heightCm !== null && heightCm !== "") {
+      const h = Number(heightCm);
+      if (!Number.isFinite(h) || h < 30 || h > 300) {
+        return res.status(400).json({ message: "Enter a valid height in cm (30–300)" });
+      }
+      heightVal = h;
+    }
+
+    let weightVal = null;
+    if (weightKg !== undefined && weightKg !== null && weightKg !== "") {
+      const w = Number(weightKg);
+      if (!Number.isFinite(w) || w < 1 || w > 600) {
+        return res.status(400).json({ message: "Enter a valid weight in kg (1–600)" });
+      }
+      weightVal = w;
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
@@ -72,6 +101,9 @@ export const registerPatient = async (req, res) => {
       role: "patient",
       uniqueId,
       phone,
+      dateOfBirth: dob,
+      heightCm: heightVal,
+      weightKg: weightVal,
       status: "approved",
     });
 
@@ -137,6 +169,31 @@ export const registerDoctor = async (req, res) => {
       return res.status(400).json({ message: "Enter a valid consultation fee" });
     }
 
+    // education arrives as a JSON string when the form is sent as multipart/form-data
+    let educationList = Array.isArray(education) ? education : [];
+    if (typeof education === "string") {
+      try {
+        const parsed = JSON.parse(education);
+        educationList = Array.isArray(parsed) ? parsed : [];
+      } catch {
+        educationList = [];
+      }
+    }
+
+    // Uploaded proof of medical license (image or PDF) — required for self-registration
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Please upload a photo or PDF of your medical license for verification",
+      });
+    }
+    const uploadedLicense = await uploadBufferToCloudinary(req.file, "uhcs/licenses");
+    const licenseImage = {
+      url:        uploadedLicense.secure_url,
+      publicId:   uploadedLicense.public_id,
+      fileType:   req.file.mimetype,
+      uploadedAt: new Date(),
+    };
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const uniqueId = await generateUniqueId("doctor");
 
@@ -151,11 +208,12 @@ export const registerDoctor = async (req, res) => {
       specialization,
       qualification,
       licenseNumber,
+      licenseImage,
       experience: Number(experience) || 0,
       hospital,
       consultationFee: Number(consultationFee) || 0,
       bio: bio || "",
-      education: Array.isArray(education) ? education : [],
+      education: educationList,
       status: "pending",
     });
 

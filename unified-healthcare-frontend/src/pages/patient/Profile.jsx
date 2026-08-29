@@ -3,15 +3,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
+import { calcAge, calcBMI, bmiCategory, formatDOB, toDateInput } from "../../utils/health";
 
 export default function Profile() {
-  const { user, setUser } = useContext(AuthContext);
+  const { user, refreshUser } = useContext(AuthContext);
 
-  const [name,    setName]    = useState(user?.name  || "");
-  const [phone,   setPhone]   = useState(user?.phone || "");
+  const [name,     setName]     = useState(user?.name  || "");
+  const [phone,    setPhone]    = useState(user?.phone || "");
+  const [dob,      setDob]      = useState(toDateInput(user?.dateOfBirth));
+  const [heightCm, setHeightCm] = useState(user?.heightCm ?? "");
+  const [weightKg, setWeightKg] = useState(user?.weightKg ?? "");
   const [saving,  setSaving]  = useState(false);
   const [success, setSuccess] = useState(false);
   const [error,   setError]   = useState("");
+
+  const age = calcAge(dob);
+  const bmi = calcBMI(heightCm, weightKg);
+  const bmiCat = bmiCategory(bmi);
 
   const inputStyle = {
     background: "var(--bg-card)",
@@ -25,10 +33,15 @@ export default function Profile() {
     setError("");
     setSuccess(false);
     try {
-      const res         = await api.put("/patient/update-profile", { name, phone });
-      const updatedUser = { ...user, name: res.data.user.name, phone: res.data.user.phone };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
+      await api.put("/patient/update-profile", {
+        name,
+        phone,
+        dateOfBirth: dob || "",
+        heightCm: heightCm === "" ? "" : Number(heightCm),
+        weightKg: weightKg === "" ? "" : Number(weightKg),
+      });
+      // pull the fresh user (incl. dateOfBirth / heightCm / weightKg) into context
+      await refreshUser();
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -150,6 +163,50 @@ export default function Profile() {
         </div>
       </motion.div>
 
+      {/* ── Health summary (DOB · Age · BMI) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="p-5 rounded-2xl mb-4"
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+      >
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#64748b" }}>
+          Health Details
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Date of Birth", value: formatDOB(user?.dateOfBirth) },
+            { label: "Age", value: age != null ? `${age} yrs` : "—" },
+            {
+              label: "Height / Weight",
+              value:
+                (user?.heightCm ? `${user.heightCm} cm` : "—") +
+                " / " +
+                (user?.weightKg ? `${user.weightKg} kg` : "—"),
+            },
+            { label: "BMI", value: bmi != null ? bmi : "—", cat: bmiCat },
+          ].map((item) => (
+            <div key={item.label} className="p-3 rounded-xl" style={{ background: "var(--bg-hover)" }}>
+              <div className="text-xs mb-1" style={{ color: "#64748b" }}>{item.label}</div>
+              <div className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                {item.value}
+              </div>
+              {item.cat && (
+                <div className="text-xs mt-0.5 font-medium" style={{ color: item.cat.color }}>
+                  {item.cat.label}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {(!user?.dateOfBirth || !user?.heightCm || !user?.weightKg) && (
+          <p className="text-xs mt-3" style={{ color: "#64748b" }}>
+            Add your date of birth, height and weight below to see your age and BMI.
+          </p>
+        )}
+      </motion.div>
+
       {/* ── Edit form ── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -229,6 +286,67 @@ export default function Profile() {
               onBlur={(e)  => (e.target.style.borderColor = "#2a2d3e")}
             />
           </div>
+
+          {/* Date of Birth */}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#94a3b8" }}>
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              value={dob}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={(e) => setDob(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+              style={inputStyle}
+              onFocus={(e) => (e.target.style.borderColor = "#a855f7")}
+              onBlur={(e)  => (e.target.style.borderColor = "#2a2d3e")}
+            />
+            {age != null && (
+              <p className="text-xs mt-1" style={{ color: "#64748b" }}>Age: {age} years</p>
+            )}
+          </div>
+
+          {/* Height + Weight */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#94a3b8" }}>
+                Height (cm)
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={heightCm}
+                onChange={(e) => setHeightCm(e.target.value)}
+                placeholder="e.g. 170"
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                style={inputStyle}
+                onFocus={(e) => (e.target.style.borderColor = "#a855f7")}
+                onBlur={(e)  => (e.target.style.borderColor = "#2a2d3e")}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#94a3b8" }}>
+                Weight (kg)
+              </label>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={weightKg}
+                onChange={(e) => setWeightKg(e.target.value)}
+                placeholder="e.g. 65"
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
+                style={inputStyle}
+                onFocus={(e) => (e.target.style.borderColor = "#a855f7")}
+                onBlur={(e)  => (e.target.style.borderColor = "#2a2d3e")}
+              />
+            </div>
+          </div>
+          {bmi != null && (
+            <p className="text-xs -mt-1" style={{ color: "#64748b" }}>
+              BMI: <span style={{ color: bmiCat?.color, fontWeight: 600 }}>{bmi} · {bmiCat?.label}</span>
+            </p>
+          )}
 
           <motion.button
             type="submit"

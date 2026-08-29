@@ -41,13 +41,26 @@ const userSchema = new mongoose.Schema({
   specialization: { type: String, trim: true },
   qualification: { type: String, trim: true },
   licenseNumber: { type: String, trim: true },
+  licenseImage: {
+    url: { type: String, default: "" },
+    publicId: { type: String, default: "" },
+    fileType: { type: String, default: "" },
+    uploadedAt: { type: Date, default: null },
+  },
   experience: { type: Number, min: 0, default: 0 },
   hospital: { type: String, trim: true },
   consultationFee: { type: Number, default: 0 },
   bio: { type: String, trim: true, maxlength: 500 },
   education: { type: [educationSchema], default: [] },
   available: { type: Boolean, default: true },
+  location: {
+    lat: { type: Number, default: null },
+    lng: { type: Number, default: null },
+    address: { type: String, default: "" },
+  },
   dateOfBirth: { type: Date },
+  heightCm: { type: Number, min: 30, max: 300, default: null },
+  weightKg: { type: Number, min: 1, max: 600, default: null },
   bloodGroup: { type: String, enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", ""], default: "" },
   address: { type: String, trim: true },
   emergencyContact: {
@@ -516,6 +529,51 @@ function randomDOB() {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
+// Plausible height (cm) + weight (kg) roughly correlated, by gender
+function randomHeightWeight(gender) {
+  const baseH = gender === "female" ? 150 : 163;
+  const heightCm = baseH + Math.floor(Math.random() * 24);
+  const weightKg = Math.round((heightCm - 100) * (0.8 + Math.random() * 0.55));
+  return { heightCm, weightKg };
+}
+
+// Approx lat/lng for the cities used in doctor hospital strings
+const CITY_COORDS = {
+  Pune:        [18.5204, 73.8567],
+  Mumbai:      [19.0760, 72.8777],
+  Nagpur:      [21.1458, 79.0882],
+  Nashik:      [19.9975, 73.7898],
+  Aurangabad:  [19.8762, 75.3433],
+  Kolhapur:    [16.7050, 74.2433],
+  Solapur:     [17.6599, 75.9064],
+  Thane:       [19.2183, 72.9781],
+  Bangalore:   [12.9716, 77.5946],
+  Chennai:     [13.0827, 80.2707],
+};
+
+// Jitter a base coord a little so pins don't stack
+function cityLocation(hospital) {
+  const city = (hospital.split(",").pop() || "").trim();
+  const base = CITY_COORDS[city];
+  if (!base) return null;
+  return {
+    lat: base[0] + (Math.random() - 0.5) * 0.06,
+    lng: base[1] + (Math.random() - 0.5) * 0.06,
+    address: hospital,
+  };
+}
+
+// Placeholder "scanned license" image (renders as an <img> in the admin viewer)
+function licenseImageFor(name) {
+  const text = "MEDICAL+LICENSE%0A" + encodeURIComponent(name);
+  return {
+    url: `https://placehold.co/900x650/0d1b2a/e0aa3e/png?text=${text}`,
+    publicId: "",
+    fileType: "image/png",
+    uploadedAt: new Date(),
+  };
+}
+
 function randomVisitDate() {
   const start = new Date(2023, 0, 1);
   const end = new Date();
@@ -554,7 +612,25 @@ async function seed() {
   for (let i = 0; i < doctorData.length; i++) {
     const d = doctorData[i];
     const uniqueId = `DOC${String(i + 1).padStart(4, "0")}`;
-    const hashedPassword = await bcrypt.hash(d.password, 10);
+    // password = first name in lowercase (e.g. "Nishikant Kshirsagar" -> "nishikant")
+    const firstName = d.name.trim().split(/\s+/)[0].toLowerCase();
+    const hashedPassword = await bcrypt.hash(firstName, 10);
+
+    // ── Status mix — named first 5 stay approved & usable ──
+    let status = "approved";
+    let suspendedReason = "";
+    if (i === 17 || i === 18) status = "pending";               // DOC0018, DOC0019
+    if (i === 19) { status = "suspended"; suspendedReason = "Repeated patient complaints — under review"; }
+
+    // ── License image — first 5 + ~75% of the rest (some left blank on purpose) ──
+    const hasLicenseImage = (i < 5 || i % 4 !== 0) && i !== 18; // blank: DOC0009 / DOC0013 / DOC0017 / DOC0019
+    const licenseImage = hasLicenseImage ? licenseImageFor(d.name) : undefined;
+
+    // ── Map location — first 5 + most of the rest (a few left unset) ──
+    const withLocation = i < 5 || i % 5 !== 4;                  // unset: DOC0010 / DOC0015 / DOC0020
+    const location = withLocation ? cityLocation(d.hospital) : undefined;
+
+    const isVerified = status === "approved" || status === "suspended";
 
     const doctor = await User.create({
       name: d.name,
@@ -564,23 +640,27 @@ async function seed() {
       uniqueId,
       phone: randomPhone(),
       gender: d.gender,
-      status: "approved",
-      verificationMethod: "admin",
+      status,
+      suspendedReason,
+      verificationMethod: isVerified ? "admin" : null,
+      verifiedAt: isVerified ? new Date() : null,
       specialization: d.specialization,
       qualification: d.qualification,
       licenseNumber: d.licenseNumber,
+      ...(licenseImage ? { licenseImage } : {}),
       experience: d.experience,
       hospital: d.hospital,
       consultationFee: d.consultationFee,
       bio: d.bio,
-      available: true,
+      available: status === "approved",
+      ...(location ? { location } : {}),
       education: [
         { degree: d.qualification.split(",")[0].trim(), institution: "Maharashtra University of Health Sciences", year: String(2024 - d.experience - 5) },
       ],
     });
 
     createdDoctors.push(doctor);
-    console.log(`   ✔ ${uniqueId} — ${d.name} (${d.specialization})`);
+    console.log(`   ✔ ${uniqueId} — ${d.name} (${d.specialization}) [${status}${licenseImage ? " · license" : " · NO license"}]`);
   }
 
   // ── Seed Patients ─────────────────────────────────────────────────────────
@@ -590,11 +670,20 @@ async function seed() {
   for (let i = 0; i < patientData.length; i++) {
     const p = patientData[i];
     const uniqueId = `PAT${String(i + 1).padStart(4, "0")}`;
-    const firstName = p.name.split(" ")[0].toLowerCase();
+    // password = first name in lowercase
+    const firstName = p.name.trim().split(/\s+/)[0].toLowerCase();
     const hashedPassword = await bcrypt.hash(firstName, 10);
     const emailName = p.name.toLowerCase().replace(/\s+/g, ".").replace(/[^a-z.]/g, "");
     const email = `${emailName}${i + 1}@gmail.com`;
     const city = randomFrom(indianCities);
+
+    // Leave some profiles incomplete so the "not provided" states are visible:
+    //   every 6th  -> no DOB / height / weight   (PAT0007, PAT0013, ...)
+    //   +3 offset  -> DOB only, no height/weight (PAT0004, PAT0010, ...)
+    const incomplete = i > 0 && i % 6 === 0;
+    const bodyOnly   = i > 0 && i % 6 === 3;
+    const dob = incomplete ? null : randomDOB();
+    const hw  = incomplete || bodyOnly ? null : randomHeightWeight(p.gender);
 
     const patient = await User.create({
       name: p.name,
@@ -605,7 +694,8 @@ async function seed() {
       phone: randomPhone(),
       gender: p.gender,
       status: "approved",
-      dateOfBirth: randomDOB(),
+      ...(dob ? { dateOfBirth: dob } : {}),
+      ...(hw ? { heightCm: hw.heightCm, weightKg: hw.weightKg } : {}),
       bloodGroup: randomFrom(bloodGroups),
       address: `${Math.floor(Math.random() * 999) + 1}, ${randomFrom(["Shivaji Nagar", "Pimpri", "Hadapsar", "Kothrud", "Wakad", "Baner", "Aundh", "Viman Nagar", "Koregaon Park", "Camp"])}, ${city}`,
       emergencyContact: {
@@ -626,11 +716,14 @@ async function seed() {
   console.log("\n📋 Seeding medical records (1–3 records per patient)...");
   let totalRecords = 0;
 
+  // Only approved doctors treat patients
+  const treatingDoctors = createdDoctors.filter((d) => d.status === "approved");
+
   for (const patient of createdPatients) {
     const recordCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 records each
 
     for (let r = 0; r < recordCount; r++) {
-      const assignedDoctor = randomFrom(createdDoctors);
+      const assignedDoctor = randomFrom(treatingDoctors);
       const diagnosis = randomFrom(diagnoses);
       const medicines = randomFrom(medicinesList);
       const note = randomFrom(notesList);
@@ -657,12 +750,21 @@ async function seed() {
   console.log(`   👨‍⚕️  Doctors   : ${createdDoctors.length}`);
   console.log(`   🧑  Patients  : ${createdPatients.length}`);
   console.log(`   📋  Records   : ${totalRecords}`);
-  console.log("\n📌 Doctor login credentials:");
+  console.log("\n📌 Login rule — password = first name in lowercase");
+  console.log("   e.g. Nishikant Kshirsagar / nishikantkshirsagar22@gmail.com → password: nishikant");
+  console.log("\n📌 Doctor logins (DOC0001–DOC0017 approved; use DOC0001–DOC0005 for a clean demo):");
   doctorData.forEach((d, i) => {
     const uniqueId = `DOC${String(i + 1).padStart(4, "0")}`;
-    console.log(`   ${uniqueId} | ${d.email.padEnd(38)} | password: ${d.password}`);
+    const pw = d.name.trim().split(/\s+/)[0].toLowerCase();
+    console.log(`   ${uniqueId} | ${d.email.padEnd(34)} | ${pw}`);
   });
-  console.log("\n📌 Patient passwords = first name lowercase (e.g. PAT0001 → 'aarav')");
+  console.log("\n   ⚠ DOC0018 & DOC0019 are PENDING — can't log in until approved; use them to test");
+  console.log("     the admin approval + license-image review flow. DOC0020 is SUSPENDED.");
+  console.log("     No license image: DOC0009 / DOC0013 / DOC0017 / DOC0019.");
+  console.log("     No map location : DOC0010 / DOC0015 / DOC0020.");
+  console.log("\n📌 Patients — password = first name lowercase (e.g. PAT0001 → 'aarav').");
+  console.log("   Incomplete profiles (blank DOB + height/weight): every 6th patient (PAT0007, PAT0013 …).");
+  console.log("   DOB but no height/weight: PAT0004, PAT0010, … — so age shows but BMI is blank.");
 
   await mongoose.disconnect();
   console.log("\n✅ Disconnected from MongoDB. Done!");

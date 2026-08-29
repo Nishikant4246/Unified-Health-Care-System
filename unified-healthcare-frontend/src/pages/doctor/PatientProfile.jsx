@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../../api/axios";
 import PageTransition from "../../components/common/PageTransition";
 import { useLanguage } from "../../context/LanguageContext";
+import { calcAge, calcBMI, bmiCategory, formatDOB } from "../../utils/health";
 
 // ── Small reusable badge ──────────────────────────────────────
 function Badge({ children, color = "#10b981" }) {
@@ -243,6 +244,10 @@ export default function PatientProfile() {
 
   if (!patient) return null;
 
+  const age    = calcAge(patient.dateOfBirth);
+  const bmi    = calcBMI(patient.heightCm, patient.weightKg);
+  const bmiCat = bmiCategory(bmi);
+
   const tabs = [
     { key: "timeline", label: "Medical Timeline" },
     { key: "doctors",  label: `Treated By (${treatedBy.length})` },
@@ -290,6 +295,10 @@ export default function PatientProfile() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge color="#3b82f6">{patient.uniqueId}</Badge>
                 <Badge color="#a855f7">Patient</Badge>
+                {age != null && <Badge color="#0ea5e9">{age} yrs</Badge>}
+                {bmi != null && (
+                  <Badge color={bmiCat?.color || "#10b981"}>BMI {bmi} · {bmiCat?.label}</Badge>
+                )}
                 {patient.phone && (
                   <span className="text-xs" style={{ color: "var(--text-secondary)" }}>📞 {patient.phone}</span>
                 )}
@@ -480,6 +489,19 @@ export default function PatientProfile() {
             { label: "Patient ID",    value: patient.uniqueId },
             { label: "Email",         value: patient.email },
             { label: "Phone",         value: patient.phone || "Not provided" },
+            { label: "Date of Birth", value: formatDOB(patient.dateOfBirth) },
+            { label: "Age",           value: age != null ? `${age} years` : "Not provided" },
+            {
+              label: "Height / Weight",
+              value:
+                (patient.heightCm ? `${patient.heightCm} cm` : "—") +
+                " / " +
+                (patient.weightKg ? `${patient.weightKg} kg` : "—"),
+            },
+            {
+              label: "BMI",
+              value: bmi != null ? `${bmi}${bmiCat ? ` · ${bmiCat.label}` : ""}` : "Not available",
+            },
             { label: "Role",          value: "Patient" },
             {
               label: "Registered On",
