@@ -233,7 +233,7 @@ export default function Home() {
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
             <Logo subtitle="Unified Health Care System" size={34} wordmarkSize={18} subtitleSize={11} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value)}
@@ -249,7 +249,7 @@ export default function Home() {
               <option value="en">{t("languageEnglish")}</option>
               <option value="mr">{t("languageMarathi")}</option>
             </select>
-            <button
+            {/* <button
               onClick={toggleTheme}
               title="Toggle theme"
               style={{
@@ -263,7 +263,7 @@ export default function Home() {
               }}
             >
               {theme === "dark" ? "🌙" : "☀️"}
-            </button>
+            </button> */}
             <button onClick={() => go("/login")} style={primaryBtn}>
               {user ? "Go to Dashboard" : "Get Started"}
             </button>
