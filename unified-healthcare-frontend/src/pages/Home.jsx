@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Logo from "../components/common/Logo";
 import { AuthContext } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 
 const GOLD = "#C9A84C";
@@ -27,28 +26,8 @@ const IcoPatient = svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 
 const IcoDoctor = svg(<><path d="M5 4v5a5 5 0 0 0 10 0V4" /><path d="M5 4H3.5M15 4h1.5" /><path d="M10 14v2a4 4 0 0 0 8 0v-1" /><circle cx="18" cy="15" r="2" /></>);
 const IcoAdmin = svg(<><path d="M12 3 5 6v5c0 5 3.5 8 7 9 3.5-1 7-4 7-9V6l-7-3Z" /><circle cx="12" cy="10" r="2.4" /><path d="M8.5 16a3.6 3.6 0 0 1 7 0" /></>);
 
-const services = [
-  { icon: IcoTimeline, title: "Unified Medical Timeline", desc: "Every visit, diagnosis, prescription and report from every clinic — one chronological history under a single ID." },
-  { icon: IcoPin, title: "Find Doctors Nearby", desc: "A GPS map of UHCS-registered doctors and real hospitals around you, with one-tap directions." },
-  { icon: IcoRx, title: "Digital Prescriptions", desc: "Each consultation generates a clean prescription PDF — saved to the record and emailed to the patient." },
-  { icon: IcoShieldCheck, title: "Verified Practitioners", desc: "Doctors are checked against the NMC register and their licence document before they are approved." },
-  { icon: IcoUpload, title: "Import Past Reports", desc: "Patients upload older lab reports and documents, so nothing from before UHCS is left behind." },
-  { icon: IcoCard, title: "Payments & History", desc: "Consultation fees and billing history tracked per visit and visible any time in your portal." },
-  { icon: IcoId, title: "Universal Health ID", desc: "One Patient or Doctor ID that identifies you across every clinic on the platform." },
-  { icon: IcoMail, title: "Email Notifications", desc: "Welcome messages, prescriptions and account approvals are delivered to your inbox automatically." },
-];
-
-const roles = [
-  { icon: IcoPatient, title: "Patients", line: "View your complete timeline, upload past reports, track payments, and find doctors near you." },
-  { icon: IcoDoctor, title: "Doctors", line: "Search patients by ID, add medical records, and issue digital prescriptions instantly." },
-  { icon: IcoAdmin, title: "Administrators", line: "Verify practitioners, manage patients and doctors, and keep the platform trusted." },
-];
-
-const steps = [
-  { n: "1", title: "Register once", desc: "Get a universal Patient or Doctor ID that works everywhere on UHCS." },
-  { n: "2", title: "Care is recorded", desc: "Every visit, prescription and report is attached to that single ID." },
-  { n: "3", title: "History follows you", desc: "Any authorised doctor opens your complete record — no forms, no gaps." },
-];
+const SERVICE_ICONS = [IcoTimeline, IcoPin, IcoRx, IcoShieldCheck, IcoUpload, IcoCard, IcoId, IcoMail];
+const ROLE_ICONS = [IcoPatient, IcoDoctor, IcoAdmin];
 
 const reveal = {
   hidden: { opacity: 0, y: 24 },
@@ -88,7 +67,7 @@ function Chip({ children, style, delay = 0, float = 8 }) {
 }
 
 // Floating 3-D-ish brand shield for the hero right column
-function HeroShield() {
+function HeroShield({ t }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -163,13 +142,13 @@ function HeroShield() {
       </motion.div>
 
       <Chip style={{ top: 22, right: 0 }} delay={0.3} float={8}>
-        <span style={{ color: EMERALD, fontWeight: 800 }}>✓</span> Verified doctor
+        <span style={{ color: EMERALD, fontWeight: 800 }}>✓</span> {t("homeChipVerified")}
       </Chip>
       <Chip style={{ bottom: 54, left: -6 }} delay={0.6} float={-9}>
         <span style={{ fontFamily: "monospace", color: GOLD }}>PAT-0001</span>
       </Chip>
       <Chip style={{ bottom: 6, right: 34 }} delay={0.9} float={10}>
-        🩺 One record, every clinic
+        🩺 {t("homeChipOneRecord")}
       </Chip>
     </motion.div>
   );
@@ -178,7 +157,6 @@ function HeroShield() {
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const { theme, toggleTheme } = useTheme();
   const { t, lang, setLang } = useLanguage();
   const [leaving, setLeaving] = useState(null);
 
@@ -206,6 +184,24 @@ export default function Home() {
     color: "#fff",
   };
 
+  const services = SERVICE_ICONS.map((icon, i) => ({
+    icon,
+    title: t(`homeSvc${i + 1}Title`),
+    desc: t(`homeSvc${i + 1}Desc`),
+  }));
+
+  const roles = [
+    { icon: ROLE_ICONS[0], title: t("homeRolePatientsTitle"), line: t("homeRolePatientsLine") },
+    { icon: ROLE_ICONS[1], title: t("homeRoleDoctorsTitle"), line: t("homeRoleDoctorsLine") },
+    { icon: ROLE_ICONS[2], title: t("homeRoleAdminsTitle"), line: t("homeRoleAdminsLine") },
+  ];
+
+  const steps = [1, 2, 3].map((n) => ({
+    n: String(n),
+    title: t(`homeStep${n}Title`),
+    desc: t(`homeStep${n}Desc`),
+  }));
+
   return (
     <div style={{ perspective: 1600, background: "var(--bg-primary)", minHeight: "100vh" }}>
       <motion.div
@@ -231,7 +227,7 @@ export default function Home() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-            <Logo subtitle="Unified Health Care System" size={34} wordmarkSize={18} subtitleSize={11} />
+            <Logo subtitle={t("brandFull")} size={34} wordmarkSize={18} subtitleSize={11} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
             <select
@@ -249,23 +245,8 @@ export default function Home() {
               <option value="en">{t("languageEnglish")}</option>
               <option value="mr">{t("languageMarathi")}</option>
             </select>
-            {/* <button
-              onClick={toggleTheme}
-              title="Toggle theme"
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 8,
-                border: "1px solid var(--border)",
-                background: "transparent",
-                color: "var(--text-secondary)",
-                cursor: "pointer",
-              }}
-            >
-              {theme === "dark" ? "🌙" : "☀️"}
-            </button> */}
             <button onClick={() => go("/login")} style={primaryBtn}>
-              {user ? "Go to Dashboard" : "Get Started"}
+              {user ? t("goToDashboard") : t("getStarted")}
             </button>
           </div>
         </header>
@@ -300,71 +281,68 @@ export default function Home() {
               flexWrap: "wrap",
             }}
           >
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            style={{ flex: "1 1 440px", minWidth: 0 }}
-          >
             <motion.div
-              variants={reveal}
-              style={{
-                fontSize: 12,
-                letterSpacing: "0.22em",
-                fontWeight: 700,
-                color: EMERALD,
-                textTransform: "uppercase",
-                marginBottom: 16,
-              }}
+              initial="hidden"
+              animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+              style={{ flex: "1 1 440px", minWidth: 0 }}
             >
-              Unified Health Care System
-            </motion.div>
-            <motion.h1
-              variants={reveal}
-              style={{
-                fontSize: "clamp(34px, 6vw, 60px)",
-                lineHeight: 1.1,
-                fontWeight: 800,
-                color: "var(--text-primary)",
-                margin: 0,
-              }}
-            >
-              One platform.
-              <br />
-              <span style={{ color: EMERALD }}>Complete care.</span>
-            </motion.h1>
-            <motion.p
-              variants={reveal}
-              style={{
-                marginTop: 20,
-                fontSize: "clamp(15px, 2.5vw, 18px)",
-                lineHeight: 1.7,
-                color: "var(--text-secondary)",
-                maxWidth: 540,
-              }}
-            >
-              Patients see multiple doctors across different clinics, but their records
-              stay fragmented. UHCS unifies medical history under one universal ID — so
-              every authorised provider gets the full picture, duplicate tests disappear,
-              and care never starts from scratch.
-            </motion.p>
+              <motion.div
+                variants={reveal}
+                style={{
+                  fontSize: 12,
+                  letterSpacing: "0.22em",
+                  fontWeight: 700,
+                  color: EMERALD,
+                  textTransform: "uppercase",
+                  marginBottom: 16,
+                }}
+              >
+                {t("brandFull")}
+              </motion.div>
+              <motion.h1
+                variants={reveal}
+                style={{
+                  fontSize: "clamp(34px, 6vw, 60px)",
+                  lineHeight: 1.1,
+                  fontWeight: 800,
+                  color: "var(--text-primary)",
+                  margin: 0,
+                }}
+              >
+                {t("homeHeroTitle1")}
+                <br />
+                <span style={{ color: EMERALD }}>{t("homeHeroTitle2")}</span>
+              </motion.h1>
+              <motion.p
+                variants={reveal}
+                style={{
+                  marginTop: 20,
+                  fontSize: "clamp(15px, 2.5vw, 18px)",
+                  lineHeight: 1.7,
+                  color: "var(--text-secondary)",
+                  maxWidth: 540,
+                }}
+              >
+                {t("homeHeroDesc")}
+              </motion.p>
 
-            <motion.div variants={reveal} style={{ marginTop: 32 }}>
-              <button onClick={() => go("/login")} style={primaryBtn}>
-                Get Started
-              </button>
+              <motion.div variants={reveal} style={{ marginTop: 32 }}>
+                <button onClick={() => go("/login")} style={primaryBtn}>
+                  {t("getStarted")}
+                </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          <div style={{ flex: "1 1 300px", display: "flex", justifyContent: "center" }}>
-            <HeroShield />
-          </div>
+            <div style={{ flex: "1 1 300px", display: "flex", justifyContent: "center" }}>
+              <HeroShield t={t} />
+            </div>
           </div>
         </section>
 
         {/* ── Services ────────────────────────────────────── */}
         <section style={{ padding: "clamp(48px, 8vw, 88px) clamp(16px, 5vw, 56px)" }}>
-          <SectionTitle kicker="What you get" title="Everything, in one place" />
+          <SectionTitle kicker={t("homeSvcKicker")} title={t("homeSvcHead")} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {services.map((s, i) => (
               <motion.div
@@ -417,7 +395,7 @@ export default function Home() {
             borderBottom: "1px solid var(--border)",
           }}
         >
-          <SectionTitle kicker="Built for everyone" title="One system, three roles" center />
+          <SectionTitle kicker={t("homeRoleKicker")} title={t("homeRoleHead")} center />
           <div
             style={{
               display: "grid",
@@ -470,7 +448,7 @@ export default function Home() {
 
         {/* ── How it works ────────────────────────────────── */}
         <section style={{ padding: "clamp(48px, 8vw, 88px) clamp(16px, 5vw, 56px)" }}>
-          <SectionTitle kicker="How it works" title="Three steps, then it just follows you" />
+          <SectionTitle kicker={t("homeStepKicker")} title={t("homeStepHead")} />
           <div
             style={{
               display: "grid",
@@ -522,11 +500,9 @@ export default function Home() {
           }}
         >
           <div style={{ maxWidth: 340 }}>
-            <Logo subtitle="Unified Health Care System" size={26} wordmarkSize={14} subtitleSize={9} />
+            <Logo subtitle={t("brandFull")} size={26} wordmarkSize={14} subtitleSize={9} />
             <p style={{ fontSize: 12, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 8 }}>
-              Digitising and centralising patient medical history across hospitals and
-              clinics — for continuity of care, fewer duplicate tests, and better
-              diagnosis, with role-based data security.
+              {t("homeFooterBlurb")}
             </p>
           </div>
           <div
@@ -543,12 +519,10 @@ export default function Home() {
               alignItems: "center",
             }}
           >
-            <span>
-              <b>© 2026 Unified Health Care System.</b> <b>This is Academic project</b>.
-            </span>
+            <span>{t("homeCopyright")}</span>
             <span>
               <span style={{ letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 700 }}>
-                Developer
+                {t("developer")}
               </span>{" "}
               ·{" "}
               <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>

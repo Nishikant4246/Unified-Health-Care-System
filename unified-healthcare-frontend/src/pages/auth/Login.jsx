@@ -196,11 +196,11 @@ export default function Login() {
                 style={{ display: "flex", flexDirection: "column", gap: 10 }}
               >
                 {[
-                  { icon: "🏥", label: t("emergencyNational"), number: "112", color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
-                  { icon: "🚑", label: t("ambulance"),          number: "108", color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
-                  { icon: "🩺", label: t("medicalHelpline"),   number: "104", color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
-                  { icon: "👮", label: t("police"),             number: "100", color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
-                  { icon: "🔥", label: t("fireBrigade"),       number: "101", color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
+                  { icon: "", label: t("emergencyNational"), number: "112", color: "#f87171", bg: "rgba(239,68,68,0.07)",   border: "rgba(239,68,68,0.2)"   },
+                  { icon: "", label: t("ambulance"),          number: "108", color: "#fb923c", bg: "rgba(249,115,22,0.07)",  border: "rgba(249,115,22,0.2)"  },
+                  { icon: "", label: t("medicalHelpline"),   number: "104", color: "#f472b6", bg: "rgba(244,114,182,0.07)", border: "rgba(244,114,182,0.2)" },
+                  { icon: "", label: t("police"),             number: "100", color: "#60a5fa", bg: "rgba(59,130,246,0.07)",  border: "rgba(59,130,246,0.2)"  },
+                  { icon: "", label: t("fireBrigade"),       number: "101", color: "#fbbf24", bg: "rgba(251,191,36,0.07)",  border: "rgba(251,191,36,0.2)"  },
                 ].map(e => (
                   <motion.a
                     key={e.number} href={`tel:${e.number}`}
@@ -260,8 +260,8 @@ export default function Login() {
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}>
                 {[
-                  { key: "uhcs", label: `🏥  ${t("aboutUHCS")}` },
-                  { key: "dev",  label: `👨‍💻  ${t("developer")}`  },
+                  { key: "uhcs", label: `  ${t("aboutUHCS")}` },
+                  { key: "dev",  label: `  ${t("developer")}`  },
                 ].map(t => (
                   <button key={t.key} onClick={() => setAboutTab(t.key)} style={{
                     padding: "10px 22px", borderRadius: "10px 10px 0 0",
@@ -610,7 +610,7 @@ export default function Login() {
                 border: "1px solid rgba(239,68,68,0.3)",
                 color: "#f87171", cursor: "pointer",
               }}
-            >🚨 Emergency</motion.button>
+            > Emergency</motion.button>
 
             {/* 2. About UHCS */}
             <motion.button
@@ -624,7 +624,7 @@ export default function Login() {
                 border: "1px solid rgba(16,185,129,0.2)",
                 color: "#10b981", cursor: "pointer",
               }}
-            >🏥 About</motion.button>
+            > About</motion.button>
 
             {/* 3. Developer */}
             <motion.button
@@ -638,7 +638,7 @@ export default function Login() {
                 border: "1px solid rgba(246,201,14,0.22)",
                 color: "#d4a017", cursor: "pointer",
               }}
-            >👨‍💻 Developer</motion.button>
+            > Developer</motion.button>
 
             {/* 4. Contact Us */}
             <motion.button
@@ -652,7 +652,7 @@ export default function Login() {
                 border: "1px solid rgba(16,185,129,0.2)",
                 color: "#10b981", cursor: "pointer",
               }}
-            >📬 Contact</motion.button>
+            > Contact</motion.button>
           </motion.div>
         </motion.div>
       </motion.div>
@@ -790,8 +790,13 @@ export default function Login() {
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#10b98150")}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: "rgba(168,85,247,0.1)" }}>🧑‍⚕️</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.25)" }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#a855f7" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+                  </svg>
+                </div>
                 <div className="flex-1">
                   <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{t("newPatient")}</div>
                   <div className="text-xs mt-0.5 font-semibold" style={{ color: "var(--text-secondary)" }}>{t("createPatientAccount")}</div>
@@ -809,8 +814,15 @@ export default function Login() {
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#3b82f650")}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2d3e")}
               >
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                  style={{ background: "rgba(59,130,246,0.1)" }}>👨‍⚕️</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)" }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#3b82f6" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 4v5a5 5 0 0 0 10 0V4" />
+                    <path d="M5 4H3.5M15 4h1.5" />
+                    <path d="M10 14v2a4 4 0 0 0 8 0v-1" />
+                    <circle cx="18" cy="15" r="2" />
+                  </svg>
+                </div>
                 <div className="flex-1">
                   <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{t("doctorProvider")}</div>
                   <div className="text-xs mt-0.5 font-semibold" style={{ color: "var(--text-secondary)" }}>{t("practitionerAccess")}</div>
