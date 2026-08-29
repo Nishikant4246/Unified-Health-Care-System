@@ -23,7 +23,6 @@ const IcoUpload = svg(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><p
 const IcoCard = svg(<><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></>);
 const IcoId = svg(<><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="11" r="2.5" /><path d="M6 17a3 3 0 0 1 6 0M15 10h3M15 14h3" /></>);
 const IcoMail = svg(<><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>);
-const IcoHeart = svg(<><path d="M20.8 7.6a5 5 0 0 0-8.8-2 5 5 0 0 0-8.8 2c-.9 3 1.3 5.6 3.4 7.7L12 20l5.4-4.7c2.1-2.1 4.3-4.7 3.4-7.7Z" /><path d="M7.5 12H10l1-2 2 4 1-2h2.5" /></>);
 const IcoPatient = svg(<><circle cx="12" cy="8" r="4" /><path d="M4 21v-1a8 8 0 0 1 16 0v1" /></>);
 const IcoDoctor = svg(<><path d="M5 4v5a5 5 0 0 0 10 0V4" /><path d="M5 4H3.5M15 4h1.5" /><path d="M10 14v2a4 4 0 0 0 8 0v-1" /><circle cx="18" cy="15" r="2" /></>);
 const IcoAdmin = svg(<><path d="M12 3 5 6v5c0 5 3.5 8 7 9 3.5-1 7-4 7-9V6l-7-3Z" /><circle cx="12" cy="10" r="2.4" /><path d="M8.5 16a3.6 3.6 0 0 1 7 0" /></>);
@@ -37,7 +36,6 @@ const services = [
   { icon: IcoCard, title: "Payments & History", desc: "Consultation fees and billing history tracked per visit and visible any time in your portal." },
   { icon: IcoId, title: "Universal Health ID", desc: "One Patient or Doctor ID that identifies you across every clinic on the platform." },
   { icon: IcoMail, title: "Email Notifications", desc: "Welcome messages, prescriptions and account approvals are delivered to your inbox automatically." },
-  { icon: IcoHeart, title: "Health Snapshot", desc: "Date of birth, age and BMI are kept on every patient profile and shown to their doctor." },
 ];
 
 const roles = [
@@ -308,7 +306,7 @@ export default function Home() {
             initial="hidden"
             animate="show"
             variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-            style={{ flex: "1 1 440px", minWidth: 0 }}
+            style={{ flex: "1 1 440px", minWidth: 0, paddingLeft: "clamp(0px, 3vw, 40px)" }}
           >
             <motion.div
               variants={reveal}
@@ -369,14 +367,7 @@ export default function Home() {
         {/* ── Services ────────────────────────────────────── */}
         <section style={{ padding: "clamp(48px, 8vw, 88px) clamp(16px, 5vw, 56px)" }}>
           <SectionTitle kicker="What you get" title="Everything, in one place" />
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))",
-              gap: 16,
-              marginTop: 34,
-            }}
-          >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
             {services.map((s, i) => (
               <motion.div
                 key={s.title}
@@ -384,11 +375,11 @@ export default function Home() {
                 initial="hidden"
                 whileInView="show"
                 viewport={{ once: true, amount: 0.3 }}
-                transition={{ delay: (i % 3) * 0.06 }}
+                transition={{ delay: (i % 4) * 0.05 }}
                 whileHover={{ y: -4 }}
                 style={{
-                  padding: "24px 22px",
-                  borderRadius: 18,
+                  padding: "20px 18px",
+                  borderRadius: 16,
                   background: "var(--bg-card)",
                   border: "1px solid var(--border)",
                   boxShadow: "0 10px 26px rgba(15,23,42,0.06)",
@@ -396,24 +387,24 @@ export default function Home() {
               >
                 <div
                   style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 13,
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     color: EMERALD,
                     background: "rgba(16,185,129,0.12)",
                     border: "1px solid rgba(16,185,129,0.25)",
-                    marginBottom: 16,
+                    marginBottom: 13,
                   }}
                 >
                   {s.icon}
                 </div>
-                <div style={{ fontSize: 15.5, fontWeight: 700, color: "var(--text-primary)", marginBottom: 7 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>
                   {s.title}
                 </div>
-                <div style={{ fontSize: 13.5, lineHeight: 1.65, color: "var(--text-secondary)" }}>{s.desc}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-secondary)" }}>{s.desc}</div>
               </motion.div>
             ))}
           </div>
