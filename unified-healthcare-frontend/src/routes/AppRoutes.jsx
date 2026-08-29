@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
@@ -40,33 +40,39 @@ export default function AppRoutes() {
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard"       element={<AdminDashboard />} />
         <Route path="doctors"         element={<AdminDoctors />} />
         <Route path="pending-doctors" element={<PendingDoctors />} />
         <Route path="patients"        element={<AdminPatients />} />
+        <Route path="*"               element={<Navigate to="/admin/dashboard" replace />} />
       </Route>
 
       {/* Doctor */}
       <Route path="/doctor" element={<ProtectedRoute role="doctor"><DoctorLayout /></ProtectedRoute>}>
+        <Route index element={<Navigate to="/doctor/dashboard" replace />} />
         <Route path="dashboard"           element={<DoctorDashboard />} />
         <Route path="search-patient"      element={<SearchPatient />} />
         <Route path="add-record"          element={<AddRecord />} />
         <Route path="my-records"          element={<MyRecords />} />
         <Route path="patients"            element={<MyPatients />} />
         <Route path="patients/:patientId" element={<PatientProfile />} />
+        <Route path="*"                   element={<Navigate to="/doctor/dashboard" replace />} />
       </Route>
 
       {/* Patient */}
       <Route path="/patient" element={<ProtectedRoute role="patient"><PatientLayout /></ProtectedRoute>}>
+        <Route index element={<Navigate to="/patient/dashboard" replace />} />
         <Route path="dashboard"     element={<PatientDashboard />} />
         <Route path="timeline"      element={<Timeline />} />
         <Route path="upload-report" element={<UploadReport />} />
         <Route path="payments"      element={<Payments />} />
         <Route path="profile"       element={<Profile />} />
-        <Route path="/patient/find-doctors" element={<FindDoctors />} />
+        <Route path="find-doctors"  element={<FindDoctors />} />
+        <Route path="*"             element={<Navigate to="/patient/dashboard" replace />} />
       </Route>
 
-      {/* 404 */}
+      {/* 404 — any unknown public path */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

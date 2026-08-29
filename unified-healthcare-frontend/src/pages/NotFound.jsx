@@ -111,7 +111,7 @@ export default function NotFound() {
               "linear-gradient(135deg, #ef4444, #f97316)")
           }
         >
-          {t('Go Home')}
+          {user ? t('goToDashboard') : t('home')}
         </button>
       </div>
     </div>

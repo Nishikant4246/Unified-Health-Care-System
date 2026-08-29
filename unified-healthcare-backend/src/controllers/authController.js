@@ -291,3 +291,11 @@ export const getMe = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ================= REFRESH TOKEN =================
+// Sliding session: a still-valid token is swapped for a fresh 7-day one.
+// Called by the app on load, so an active user never gets logged out mid-use;
+// an inactive user's token still expires after 7 days.
+export const refreshToken = (req, res) => {
+  res.status(200).json({ token: generateToken(req.user._id) });
+};

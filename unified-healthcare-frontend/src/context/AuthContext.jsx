@@ -20,6 +20,13 @@ export const AuthProvider = ({ children }) => {
         const res = await api.get("/auth/me");
         setUser(res.data);
         localStorage.setItem("user", JSON.stringify(res.data));
+
+        // Sliding session — swap the still-valid token for a fresh 7-day one,
+        // so an active user is never logged out mid-use. Best effort only.
+        try {
+          const r = await api.get("/auth/refresh");
+          if (r.data?.token) localStorage.setItem("token", r.data.token);
+        } catch { /* keep the current token */ }
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
