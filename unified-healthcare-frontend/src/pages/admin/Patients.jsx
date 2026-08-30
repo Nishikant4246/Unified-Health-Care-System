@@ -49,11 +49,19 @@ export default function AdminPatients() {
     }
     setResettingPw(true);
     try {
-      await api.put(`/admin/user/${selectedPatient._id}/reset-password`, {
+      const { data } = await api.put(`/admin/user/${selectedPatient._id}/reset-password`, {
         password: resetPw,
         notify: resetNotify,
       });
-      toast.success(resetNotify ? "Password reset & emailed to the patient" : "Password reset");
+      if (resetNotify && data?.emailed === false) {
+        toast.error(
+          `Password reset, but the email FAILED: ${data.emailError || "unknown"}. ` +
+          `Share the new password manually.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success(resetNotify ? "Password reset & emailed to the patient" : "Password reset");
+      }
       setShowResetModal(false);
       setResetPw("");
       setResetNotify(true);

@@ -3,7 +3,7 @@ import User from "../models/User.js";
 import MedicalRecord from "../models/MedicalRecord.js";
 import cloudinary from "../config/cloudinary.js";
 import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";
-import sendEmail from "../utils/sendEmail.js";
+import sendEmail, { emailEnvSummary } from "../utils/sendEmail.js";
 import {
   doctorCreatedByAdminEmail,
   doctorApprovedEmail,
@@ -429,12 +429,50 @@ export const adminResetPassword = async (req, res) => {
     user.resetPasswordExpires = null;
     await user.save();
 
+    let emailed = null;
+    let emailError = null;
     if (notify) {
       const { subject, html } = adminPasswordResetEmail(user, password);
-      sendEmail({ to: user.email, subject, html }).catch(() => {});
+      const result = await sendEmail({ to: user.email, subject, html });
+      emailed = result.ok;
+      if (!result.ok) emailError = String(result.error || "unknown error");
     }
 
-    res.status(200).json({ message: "Password reset successfully" });
+    res.status(200).json({
+      message: "Password reset successfully",
+      emailed,       // true = sent · false = send failed · null = notify was off
+      emailError,    // reason string when emailed === false
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= EMAIL DIAGNOSTICS =================
+// GET /api/admin/email-status            → which transport is configured
+// GET /api/admin/email-status?test=a@b.c → also send a live test email there
+// Returns only booleans about env vars, never the secret values.
+export const emailStatus = async (req, res) => {
+  try {
+    const summary = emailEnvSummary();
+    const out = { ...summary };
+
+    const testTo = typeof req.query.test === "string" ? req.query.test.trim() : "";
+    if (testTo) {
+      const result = await sendEmail({
+        to: testTo,
+        subject: "UHCS – Email test",
+        html: `<p>This is a test email from UHCS sent via <b>${summary.mode}</b>.</p>
+               <p>If you received this, transactional email (password reset, etc.) is working.</p>`,
+      });
+      out.test = {
+        to: testTo,
+        sent: result.ok,
+        error: result.ok ? null : String(result.error || "unknown error"),
+      };
+    }
+
+    res.status(200).json(out);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

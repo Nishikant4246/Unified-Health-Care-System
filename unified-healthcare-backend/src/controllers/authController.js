@@ -10,7 +10,9 @@ import {
 } from "../utils/emailTemplates.js"; // NEW
 import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";       // NEW
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+// Read lazily at request time so the value is whatever the host set,
+// regardless of module-load / dotenv ordering.
+const frontendUrl = () => process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Generate Unique ID
 const generateUniqueId = async (role) => {
@@ -334,9 +336,17 @@ export const forgotPassword = async (req, res) => {
       user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
       await user.save();
 
-      const link = `${FRONTEND_URL}/reset-password/${rawToken}`;
+      const link = `${frontendUrl()}/reset-password/${rawToken}`;
       const { subject, html } = passwordResetEmail(user, link);
-      sendEmail({ to: user.email, subject, html }).catch(() => {});
+      // Awaited so the server log records the real outcome; the HTTP response
+      // stays generic either way so we never reveal which emails are registered.
+      const result = await sendEmail({ to: user.email, subject, html });
+      if (!result.ok) {
+        console.error(
+          `FORGOT PASSWORD: reset link for ${user.email} could NOT be emailed —`,
+          result.error,
+        );
+      }
     }
 
     res.status(200).json(genericResponse);

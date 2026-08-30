@@ -11,6 +11,7 @@ import {
   verifyDoctorNMC,      // NEW
   updateDoctorProfile,  // NEW
   adminResetPassword,   // NEW
+  emailStatus,          // NEW
   getAllPatients,
   deleteUser,
   getDoctorProfile,
@@ -44,6 +45,7 @@ router.get("/patients",                  getAllPatients);
 router.get("/patient/:id",               getPatientProfile);
 
 // ── Shared ────────────────────────────────────
+router.get("/email-status",              emailStatus);          // NEW — diagnostics
 router.put("/user/:id/reset-password",   adminResetPassword);   // NEW
 router.delete("/user/:id",               deleteUser);
 
