@@ -1,9 +1,16 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import sendEmail from "../utils/sendEmail.js";                                    // NEW
-import { patientWelcomeEmail, doctorWelcomeEmail } from "../utils/emailTemplates.js"; // NEW
+import {
+  patientWelcomeEmail,
+  doctorWelcomeEmail,
+  passwordResetEmail,
+} from "../utils/emailTemplates.js"; // NEW
 import { uploadBufferToCloudinary } from "../utils/uploadToCloudinary.js";       // NEW
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Generate Unique ID
 const generateUniqueId = async (role) => {
@@ -302,4 +309,73 @@ export const getMe = async (req, res) => {
 // an inactive user's token still expires after 7 days.
 export const refreshToken = (req, res) => {
   res.status(200).json({ token: generateToken(req.user._id) });
+};
+
+const hashResetToken = (raw) =>
+  crypto.createHash("sha256").update(String(raw)).digest("hex");
+
+// ================= FORGOT PASSWORD =================
+// Emails a one-time reset link. Always responds the same way so it never
+// reveals which addresses are registered.
+export const forgotPassword = async (req, res) => {
+  const genericResponse = {
+    message: "If that email is registered, a password reset link has been sent.",
+  };
+  try {
+    const email = typeof req.body.email === "string"
+      ? req.body.email.trim().toLowerCase()
+      : "";
+    if (!email) return res.status(200).json(genericResponse);
+
+    const user = await User.findOne({ email });
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      user.resetPasswordToken = hashResetToken(rawToken);
+      user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
+      await user.save();
+
+      const link = `${FRONTEND_URL}/reset-password/${rawToken}`;
+      const { subject, html } = passwordResetEmail(user, link);
+      sendEmail({ to: user.email, subject, html }).catch(() => {});
+    }
+
+    res.status(200).json(genericResponse);
+  } catch (error) {
+    console.log("FORGOT PASSWORD ERROR:", error);
+    res.status(200).json(genericResponse); // still don't leak anything
+  }
+};
+
+// ================= RESET PASSWORD =================
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const password = req.body.password;
+
+    if (typeof password !== "string" || password.length < 6 || password.length > 128 || /\s/.test(password)) {
+      return res.status(400).json({
+        message: "Password must be 6-128 characters and cannot contain spaces",
+      });
+    }
+
+    const user = await User.findOne({
+      resetPasswordToken: hashResetToken(token),
+      resetPasswordExpires: { $gt: new Date() },
+    });
+    if (!user) {
+      return res.status(400).json({
+        message: "This reset link is invalid or has expired. Please request a new one.",
+      });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: "Password updated. You can now sign in." });
+  } catch (error) {
+    console.log("RESET PASSWORD ERROR:", error);
+    res.status(500).json({ message: error.message });
+  }
 };

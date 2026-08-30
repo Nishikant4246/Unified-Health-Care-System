@@ -531,3 +531,68 @@ export const doctorReinstatedEmail = (doctor) => ({
     `
   ),
 });
+
+// ══════════════════════════════════════════════════════════════
+// 12. Password Reset link  →  used in forgotPassword()
+// ══════════════════════════════════════════════════════════════
+export const passwordResetEmail = (user, link) => ({
+  subject: "UHCS – Reset Your Password",
+  html: wrap(
+    GOLD, "🔑",
+    "Password Reset Requested",
+    "This link is valid for 30 minutes",
+    `
+    ${greeting(
+      `<strong>${user.name}</strong>`,
+      "We received a request to reset your UHCS password. Click the button below to choose a new one. If you did not request this, you can safely ignore this email — your password will not change."
+    )}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0 8px;">
+      <tr><td align="center">
+        <a href="${link}"
+           style="display:inline-block;background:linear-gradient(135deg,${GOLD_DARK},${GOLD});
+                  color:${NAVY};padding:14px 36px;border-radius:6px;text-decoration:none;
+                  font-size:15px;font-weight:600;font-family:'Source Sans 3',sans-serif;
+                  letter-spacing:0.4px;border:1px solid ${GOLD_DARK};">
+          Reset Password
+        </a>
+      </td></tr>
+    </table>
+    ${infoBox(
+      "⏳ For your security this link <strong>expires in 30 minutes</strong> and can be used only once.",
+      "gold"
+    )}
+    <p style="margin:20px 0 0;font-size:13px;color:${TEXT_LIGHT};font-family:'Source Sans 3',sans-serif;">
+      If the button does not work, paste this link into your browser:<br>
+      <span style="word-break:break-all;color:${GOLD_DARK};">${link}</span>
+    </p>
+    `
+  ),
+});
+
+// ══════════════════════════════════════════════════════════════
+// 13. Password reset by Admin  →  used in adminResetPassword()
+// ══════════════════════════════════════════════════════════════
+export const adminPasswordResetEmail = (user, tempPassword) => ({
+  subject: "UHCS – Your Password Has Been Reset",
+  html: wrap(
+    GOLD, "🔑",
+    "Password Reset by Admin",
+    "Please sign in and change it",
+    `
+    ${greeting(
+      `<strong>${user.name}</strong>`,
+      "A UHCS administrator has reset your account password. Use the temporary password below to sign in, then change it from your profile."
+    )}
+    ${dataTable([
+      ["Login Email",         user.email],
+      ["Login ID",            user.uniqueId || "—", GOLD_DARK],
+      ["Temporary Password",  tempPassword, "#DC2626"],
+    ])}
+    ${infoBox(
+      "🔒 <strong>Change this password immediately</strong> after signing in. Anyone with this email can otherwise access your account.",
+      "red"
+    )}
+    ${ctaBtn("Login to UHCS")}
+    `
+  ),
+});

@@ -10,6 +10,7 @@ import {
   reinstateDoctor,      // NEW
   verifyDoctorNMC,      // NEW
   updateDoctorProfile,  // NEW
+  adminResetPassword,   // NEW
   getAllPatients,
   deleteUser,
   getDoctorProfile,
@@ -43,6 +44,7 @@ router.get("/patients",                  getAllPatients);
 router.get("/patient/:id",               getPatientProfile);
 
 // ── Shared ────────────────────────────────────
+router.put("/user/:id/reset-password",   adminResetPassword);   // NEW
 router.delete("/user/:id",               deleteUser);
 
 export default router;

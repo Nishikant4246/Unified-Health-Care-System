@@ -14,6 +14,12 @@ export default function AdminPatients() {
   const [profile, setProfile] = useState(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
+  // Reset-password modal
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetPw, setResetPw] = useState("");
+  const [resetNotify, setResetNotify] = useState(true);
+  const [resettingPw, setResettingPw] = useState(false);
+
   const fetchPatients = () => {
     setLoading(true);
     api.get("/admin/patients")
@@ -33,6 +39,28 @@ export default function AdminPatients() {
       setPatients((prev) => prev.filter((p) => p._id !== id));
     } catch {
       toast.error("Failed to delete patient");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (resetPw.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setResettingPw(true);
+    try {
+      await api.put(`/admin/user/${selectedPatient._id}/reset-password`, {
+        password: resetPw,
+        notify: resetNotify,
+      });
+      toast.success(resetNotify ? "Password reset & emailed to the patient" : "Password reset");
+      setShowResetModal(false);
+      setResetPw("");
+      setResetNotify(true);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reset password");
+    } finally {
+      setResettingPw(false);
     }
   };
 
@@ -326,7 +354,13 @@ export default function AdminPatients() {
                       {/* Admin Actions */}
                       <div className="mt-6 pt-5" style={{ borderTop: "1px solid #2a2d3e" }}>
                         <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Admin Actions</h3>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
+                          <button
+                            onClick={() => { setResetPw(""); setResetNotify(true); setShowResetModal(true); }}
+                            className="text-xs px-4 py-2 rounded-lg font-medium"
+                            style={{ background: "rgba(201,168,76,0.14)", color: "#C9A84C" }}>
+                            🔑 Reset Password
+                          </button>
                           <button
                             onClick={() => handleDelete(selectedPatient._id, selectedPatient.name)}
                             className="text-xs px-4 py-2 rounded-lg font-medium"
@@ -343,6 +377,67 @@ export default function AdminPatients() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ── Reset Password Modal ───────────────────────────── */}
+      <AnimatePresence>
+        {showResetModal && selectedPatient && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.7)" }}
+            onClick={() => setShowResetModal(false)}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="w-full max-w-md p-6 rounded-2xl"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+              onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-lg font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+                Reset Password
+              </h3>
+              <p className="text-sm mb-4" style={{ color: "#94a3b8" }}>
+                Set a new password for{" "}
+                <strong style={{ color: "var(--text-primary)" }}>{selectedPatient.name}</strong>.
+                Existing passwords are encrypted and cannot be viewed.
+              </p>
+              <input
+                type="text"
+                value={resetPw}
+                onChange={(e) => setResetPw(e.target.value)}
+                placeholder="New password (min 6 chars)"
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none mb-3 font-mono"
+                style={{ background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              />
+              <label className="flex items-center gap-2 text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+                <input
+                  type="checkbox"
+                  checked={resetNotify}
+                  onChange={(e) => setResetNotify(e.target.checked)}
+                />
+                Email the new password to the patient
+              </label>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleResetPassword}
+                  disabled={resettingPw}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                  style={{ background: "#C9A84C", color: "#0D1B2A", opacity: resettingPw ? 0.7 : 1 }}>
+                  {resettingPw ? "Resetting..." : "Reset Password"}
+                </button>
+                <button
+                  onClick={() => { setShowResetModal(false); setResetPw(""); }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium"
+                  style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </PageTransition>
   );
 }

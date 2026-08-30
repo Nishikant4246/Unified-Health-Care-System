@@ -5,6 +5,8 @@ import {
   loginUser,
   getMe,
   refreshToken,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/authController.js";
 import protect from "../middleware/authMiddleware.js";
 import upload from "../middleware/uploadMiddleware.js";
@@ -18,5 +20,7 @@ router.post("/register-doctor", upload.single("licenseImage"), registerDoctor);
 router.post("/login", loginUser);
 router.get("/me", protect, getMe);
 router.get("/refresh", protect, refreshToken);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
 
 export default router;

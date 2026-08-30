@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String, required: true,
     },
+    // ─── Password reset (forgot-password flow) ───────────────
+    resetPasswordToken:   { type: String, default: null },   // sha256 hash of the emailed token
+    resetPasswordExpires: { type: Date,   default: null },
     role: {
       type: String, enum: ["admin", "doctor", "patient"], required: true,
     },

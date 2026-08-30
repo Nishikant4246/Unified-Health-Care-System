@@ -10,6 +10,7 @@ import {
   doctorApprovedViaNMCEmail,
   doctorSuspendedEmail,
   doctorReinstatedEmail,
+  adminPasswordResetEmail,
 } from "../utils/emailTemplates.js";
 
 // ─── Utility: Generate Unique ID ─────────────────────────────
@@ -396,6 +397,44 @@ export const deleteUser = async (req, res) => {
     }
     await User.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// ================= ADMIN RESET PASSWORD =================
+// Sets a new password for a doctor / patient and (optionally) emails it.
+// Passwords are hashed — the admin can never read an existing one, only replace it.
+export const adminResetPassword = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.role === "admin") {
+      return res.status(403).json({ message: "Cannot reset an admin password here" });
+    }
+
+    const password = req.body.password;
+    const notify = req.body.notify === true || req.body.notify === "true";
+
+    if (typeof password !== "string" || password.length < 6 || password.length > 128 || /\s/.test(password)) {
+      return res.status(400).json({
+        message: "Password must be 6-128 characters and cannot contain spaces",
+      });
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    if (notify) {
+      const { subject, html } = adminPasswordResetEmail(user, password);
+      sendEmail({ to: user.email, subject, html }).catch(() => {});
+    }
+
+    res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

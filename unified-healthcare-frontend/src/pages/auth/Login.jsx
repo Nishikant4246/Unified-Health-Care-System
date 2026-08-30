@@ -745,6 +745,12 @@ export default function Login() {
               </div>
             </div>
 
+            <div className="flex justify-end -mt-1">
+              <Link to="/forgot-password" className="text-xs font-semibold" style={{ color: "#10b981" }}>
+                Forgot password?
+              </Link>
+            </div>
+
             <motion.button
               type="submit" disabled={loading}
               whileHover={!loading ? { scale: 1.02, background: "#0fcc8f" } : {}}
