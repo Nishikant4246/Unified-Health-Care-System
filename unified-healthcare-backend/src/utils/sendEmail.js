@@ -6,14 +6,20 @@ let transporter = null;
 let warnedMissingEnv = false;
 
 const getTransporter = () => {
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
+  // A generic SMTP provider (SendGrid / Brevo / Mailgun / Resend-SMTP …) wins
+  // when configured; otherwise fall back to Gmail. STARTTLS on 587 is the
+  // default port because many cloud hosts block 465.
+  const host = process.env.SMTP_HOST || "smtp.gmail.com";
+  const port = Number(process.env.SMTP_PORT || process.env.EMAIL_PORT) || 587;
+  const user = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 
   if (!user || !pass) {
     if (!warnedMissingEnv) {
       console.error(
-        "❌ Email disabled: EMAIL_USER / EMAIL_PASS are not set in the environment. " +
-        "Set them in your host's env vars (a committed .env is not used in production).",
+        "❌ Email disabled: no SMTP credentials in the environment " +
+        "(set SMTP_USER/SMTP_PASS or EMAIL_USER/EMAIL_PASS in your host's env vars — " +
+        "a committed .env is NOT used in production).",
       );
       warnedMissingEnv = true;
     }
@@ -22,14 +28,15 @@ const getTransporter = () => {
 
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      host,
+      port,
+      secure: port === 465,       // 465 = implicit TLS, 587 = STARTTLS
+      requireTLS: port !== 465,
       auth: { user, pass },
       // don't let a stuck SMTP socket hang an awaited request forever
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 20000,
+      connectionTimeout: 12000,
+      greetingTimeout: 12000,
+      socketTimeout: 25000,
     });
   }
   return transporter;

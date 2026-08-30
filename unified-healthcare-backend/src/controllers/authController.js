@@ -231,10 +231,14 @@ export const registerDoctor = async (req, res) => {
   }
 };
 
-// ================= LOGIN ================= (unchanged)
+// ================= LOGIN =================
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    // normalise the same way registration does, so case / spaces never block a login
+    const email = typeof req.body.email === "string"
+      ? req.body.email.trim().toLowerCase()
+      : req.body.email;
+    const password = req.body.password;
 
     const user = await User.findOne({ email });
     if (!user) {

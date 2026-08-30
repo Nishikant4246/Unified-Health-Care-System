@@ -704,7 +704,7 @@ export default function Login() {
               <label className="block text-sm font-bold mb-2" style={{ color: "var(--text-primary)" }}>{t("emailAddress")}</label>
               <input
                 type="email" name="email" autoComplete="email"
-                value={email} onChange={(e) => setEmail(e.target.value)}
+                value={email} onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
                 placeholder="you@example.com" required
                 className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all"
                 style={{ background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
