@@ -1,0 +1,8 @@
+# Safety net — never commit environment files anywhere in the repo
+**/.env
+**/.env.*
+!**/.env.example
+
+**/node_modules/
+*.log
+.DS_Store
