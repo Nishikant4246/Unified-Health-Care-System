@@ -316,6 +316,13 @@ export const refreshToken = (req, res) => {
 const hashResetToken = (raw) =>
   crypto.createHash("sha256").update(String(raw)).digest("hex");
 
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Match an email regardless of the casing it was stored with (legacy accounts
+// may not be lower-cased).
+const findUserByEmail = (email) =>
+  User.findOne({ email: { $regex: `^${escapeRegex(email)}$`, $options: "i" } });
+
 // ================= FORGOT PASSWORD =================
 // Emails a one-time reset link. Always responds the same way so it never
 // reveals which addresses are registered.
@@ -329,19 +336,31 @@ export const forgotPassword = async (req, res) => {
       : "";
     if (!email) return res.status(200).json(genericResponse);
 
-    const user = await User.findOne({ email });
-    if (user) {
+    const user = await findUserByEmail(email);
+    if (!user) {
+      console.log(`FORGOT PASSWORD: no account matched "${email}" — no email sent.`);
+    } else {
       const rawToken = crypto.randomBytes(32).toString("hex");
-      user.resetPasswordToken = hashResetToken(rawToken);
-      user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 min
-      await user.save();
+      // updateOne (not user.save()) so a legacy document that would fail
+      // whole-doc validation can still receive a reset token.
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            resetPasswordToken: hashResetToken(rawToken),
+            resetPasswordExpires: new Date(Date.now() + 30 * 60 * 1000), // 30 min
+          },
+        },
+      );
 
       const link = `${frontendUrl()}/reset-password/${rawToken}`;
       const { subject, html } = passwordResetEmail(user, link);
       // Awaited so the server log records the real outcome; the HTTP response
       // stays generic either way so we never reveal which emails are registered.
       const result = await sendEmail({ to: user.email, subject, html });
-      if (!result.ok) {
+      if (result.ok) {
+        console.log(`FORGOT PASSWORD: reset link emailed to ${user.email}.`);
+      } else {
         console.error(
           `FORGOT PASSWORD: reset link for ${user.email} could NOT be emailed —`,
           result.error,
@@ -378,10 +397,18 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(password, 10);
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
-    await user.save();
+    // updateOne (not user.save()) so a legacy document that would fail
+    // whole-doc validation can still have its password reset.
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: await bcrypt.hash(password, 10),
+          email: String(user.email).trim().toLowerCase(), // normalise legacy casing so login matches
+        },
+        $unset: { resetPasswordToken: 1, resetPasswordExpires: 1 },
+      },
+    );
 
     res.status(200).json({ message: "Password updated. You can now sign in." });
   } catch (error) {

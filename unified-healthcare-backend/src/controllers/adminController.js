@@ -424,10 +424,18 @@ export const adminResetPassword = async (req, res) => {
       });
     }
 
-    user.password = await bcrypt.hash(password, 10);
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
-    await user.save();
+    // updateOne (not user.save()) so a legacy document that would fail
+    // whole-doc validation can still have its password reset.
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          password: await bcrypt.hash(password, 10),
+          email: String(user.email).trim().toLowerCase(), // normalise legacy casing so login matches
+        },
+        $unset: { resetPasswordToken: 1, resetPasswordExpires: 1 },
+      },
+    );
 
     let emailed = null;
     let emailError = null;
