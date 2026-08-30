@@ -44,10 +44,10 @@ export default function AdminDashboard() {
   const [error, setError]               = useState(null);
 
   const navigate      = useNavigate();
-  const { user }      = useContext(AuthContext); // ← use AuthContext, not localStorage
+  const { user }      = useContext(AuthContext); 
 
   useEffect(() => {
-    // Wait until user is loaded from AuthContext
+   
     if (!user) return;
 
     // Guard — only admin can fetch
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
     };
 
     fetchStats();
-  }, [user]); // ← re-runs when user is set
+  }, [user]); 
 
   // Not admin
   const { t } = useLanguage();
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
   return (
     <div className="animate-fade-in">
 
-      {/* Header */}
+      {/* Header*/}
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
           {t('dashboardOverview')}
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      {/* Pending Doctors Alert */}
+      {/*Pending Doctors Alert */}
       {pendingCount > 0 && (
         <div
           className="mb-6 p-4 rounded-xl flex items-center justify-between cursor-pointer"
@@ -244,6 +244,9 @@ export default function AdminDashboard() {
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[
+          { label: "Authentication",       status: "Operational" },
+          { label: "Email Service",        status: "Operational" },
+          { label: "Doctor Verification",  status: "Active" },
             { label: "Backend API",   status: "Operational" },
             { label: "Database",      status: "Connected"   },
             { label: "File Storage",  status: "Active"      },

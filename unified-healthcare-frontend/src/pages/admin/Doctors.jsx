@@ -345,7 +345,7 @@ export default function AdminDoctors() {
       toast.error(err.response?.data?.message || "Failed to reset password");
     } finally {
       setResettingPw(false);
-    }
+    } 
   };
 
   // ── Inline profile edit (fields + license image) ──────────
@@ -1312,7 +1312,7 @@ export default function AdminDoctors() {
                                   background: "rgba(59,130,246,0.12)",
                                   color: "#3b82f6",
                                 }}>
-                                ✎ Edit Profile
+                                 Edit Profile
                               </button>
                               <button
                                 onClick={() => { setResetPw(""); setResetNotify(true); setShowResetModal(true); }}
@@ -1321,7 +1321,7 @@ export default function AdminDoctors() {
                                   background: "rgba(201,168,76,0.14)",
                                   color: "#C9A84C",
                                 }}>
-                                🔑 Reset Password
+                                 Reset Password
                               </button>
                               <button
                                 onClick={() =>
@@ -1454,7 +1454,7 @@ export default function AdminDoctors() {
                                   onClick={() => setLicensePreview(profile.doctor.licenseImage)}
                                   className="text-xs px-3 py-1.5 rounded-lg font-medium"
                                   style={{ background: "rgba(59,130,246,0.15)", color: "#3b82f6" }}>
-                                  🔍 Show Image
+                                     Show Image
                                 </button>
                               ) : (
                                 <span

@@ -119,22 +119,13 @@ export default function MyPatients() {
           className="p-10 rounded-2xl text-center"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
-          <div className="text-4xl mb-3">👥</div>
-          <p className="text-sm font-medium mb-1" style={{ color: "#f1f5f9" }}>
+          
+          <p className="text-sm text-slate-100 font-medium mb-1" style={{ color: "#f1f5f9" }}>
             {searchQuery ? "No patients match your search" : "No patients yet"}
           </p>
           <p className="text-xs mb-4" style={{ color: "#64748b" }}>
             {!searchQuery && "Patients will appear here after you add medical records"}
           </p>
-          {!searchQuery && (
-            <button
-              onClick={() => navigate("/doctor/search-patient")}
-              className="px-4 py-2 rounded-xl text-xs font-semibold"
-              style={{ background: "#10b981", color: "white" }}
-            >
-              Search a Patient
-            </button>
-          )}
         </motion.div>
       )}
 

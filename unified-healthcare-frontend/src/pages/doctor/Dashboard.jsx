@@ -81,7 +81,7 @@ export default function DoctorDashboard() {
     setLocMsg("");
     try {
       const res = await api.post("/doctor/update-location", { address: user.hospital });
-      setLocMsg("✅ Location set successfully! Patients can now find you on the map.");
+      setLocMsg(" Location set successfully! Patients can now find you on the map.");
       await refreshUser();
     } catch (err) {
       setLocMsg(err.response?.data?.message || "Failed to set location. Try a more specific address.");
@@ -138,7 +138,7 @@ export default function DoctorDashboard() {
         <div className="flex items-start gap-4">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
             style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)" }}>
-            📍
+            &#x1F4CD;
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
@@ -155,7 +155,7 @@ export default function DoctorDashboard() {
             </p>
             {locMsg && (
               <p className="text-xs mb-3"
-                style={{ color: locMsg.startsWith("✅") ? "#10b981" : "#f87171" }}>
+                style={{ color: locMsg.startsWith("&#8594;") ? "#10b981" : "#f87171" }}>
                 {locMsg}
               </p>
             )}
@@ -267,9 +267,12 @@ export default function DoctorDashboard() {
         </div>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Backend API",  status: "Operational" },
-            { label: "Database",     status: "Connected"   },
-            { label: "File Storage", status: "Active"      },
+            { label: "Profile",              status: "Verified" },
+{ label: "Medical License",      status: "Verified" },
+{ label: "Appointments",         status: "Active" },
+{ label: "Patient Records",      status: "Available" },
+{ label: "Prescription Service", status: "Active" },
+{ label: "Notifications",        status: "Operational" },
           ].map((item, i) => (
             <motion.div key={item.label}
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}

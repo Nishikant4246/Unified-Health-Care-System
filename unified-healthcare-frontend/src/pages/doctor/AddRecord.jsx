@@ -49,7 +49,7 @@ export default function AddRecord() {
       const data = res.data?.patients || res.data || [];
       const list = Array.isArray(data) ? data : [data];
       if (list.length === 0) {
-        setSearchError("No patient found. Try a different name or ID.");
+        setSearchError("Hey Doc! no patient found. Try a different name or ID.");
       } else if (list.length === 1) {
         // Auto-select if only one result
         setPatient(list[0]);
@@ -58,7 +58,7 @@ export default function AddRecord() {
         setSearchResults(list);
       }
     } catch (err) {
-      setSearchError("Patient not found. Check the name or ID and try again.");
+      setSearchError("Hey Doc! Patient not found. Check the name or ID and try again.");
     } finally {
       setSearching(false);
     }

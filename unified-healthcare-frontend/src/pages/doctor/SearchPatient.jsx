@@ -251,10 +251,9 @@ export default function SearchPatient() {
           className="p-10 rounded-2xl text-center"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
-          <div className="text-4xl mb-3">🔍</div>
-          <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>No patient found</p>
+          <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Hey Doc! No patient found</p>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Try a different name or Patient ID
+            Try a different Name or Patient ID or ask Registered or not
           </p>
         </motion.div>
       )}
@@ -268,8 +267,7 @@ export default function SearchPatient() {
           className="p-8 rounded-2xl text-center"
           style={{ background: "var(--bg-card)", border: "1px dashed var(--border)" }}
         >
-          <div className="text-3xl mb-3">👤</div>
-          <p className="text-sm" style={{ color: "#64748b" }}>
+          <p className="text-medium" style={{ color: "#64748b" }}>
             Enter a patient name or ID above to search
           </p>
         </motion.div>

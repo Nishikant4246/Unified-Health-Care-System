@@ -1,6 +1,4 @@
 // Shared patient health calculations — age from DOB, BMI from height/weight.
-// Used by the patient Profile, patient Dashboard, doctor PatientProfile and
-// admin Patients views so the numbers are computed one way everywhere.
 
 /** Whole-year age from a date of birth. Returns null if missing / invalid. */
 export const calcAge = (dob) => {

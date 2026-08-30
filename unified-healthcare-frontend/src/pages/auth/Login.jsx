@@ -313,12 +313,12 @@ export default function Login() {
                       style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
                     >
                       {[
-                        { icon: "🔗", h: "Cross-Clinic History",  b: "Unifies all patient records across every clinic they've visited." },
-                        { icon: "🩺", h: "Better Diagnosis",      b: "Doctors get full context, reducing errors and improving accuracy." },
-                        { icon: "♻️", h: "No Repeated Tests",    b: "Eliminates redundant lab work that costs patients time and money." },
-                        { icon: "🌿", h: "Paperless Clinics",     b: "Eco-friendly digital records for prescriptions and reports." },
-                        { icon: "🔒", h: "Data Security",         b: "Role-based access ensures only authorized providers see data." },
-                        { icon: "⚡", h: "24/7 Record Access",    b: "Medical records available anytime — at any hospital or clinic." },
+                        { icon: "", h: "Cross-Clinic History",  b: "Unifies all patient records across every clinic they've visited." },
+                        { icon: "", h: "Better Diagnosis",      b: "Doctors get full context, reducing errors and improving accuracy." },
+                        { icon: "", h: "No Repeated Tests",    b: "Eliminates redundant lab work that costs patients time and money." },
+                        { icon: "", h: "Paperless Clinics",     b: "Eco-friendly digital records for prescriptions and reports." },
+                        { icon: "", h: "Data Security",         b: "Role-based access ensures only authorized providers see data." },
+                        { icon: "", h: "24/7 Record Access",    b: "Medical records available anytime — at any hospital or clinic." },
                       ].map(c => (
                         <motion.div
                           key={c.h} variants={fadeUp}

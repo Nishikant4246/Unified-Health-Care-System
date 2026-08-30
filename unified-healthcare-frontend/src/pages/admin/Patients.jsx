@@ -359,7 +359,7 @@ export default function AdminPatients() {
                             onClick={() => { setResetPw(""); setResetNotify(true); setShowResetModal(true); }}
                             className="text-xs px-4 py-2 rounded-lg font-medium"
                             style={{ background: "rgba(201,168,76,0.14)", color: "#C9A84C" }}>
-                            🔑 Reset Password
+                             Reset Password
                           </button>
                           <button
                             onClick={() => handleDelete(selectedPatient._id, selectedPatient.name)}

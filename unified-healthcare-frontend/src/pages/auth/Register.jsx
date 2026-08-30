@@ -23,28 +23,6 @@ function getPasswordStrength(pw) {
   return { score, ...map[score] };
 }
 
-// ── Tooltip badge ─────────────────────────────────────────────
-function SecureBadge({ tip }) {
-  const [show, setShow] = useState(false);
-  return (
-    <div className="relative inline-block ml-1">
-      <button
-        type="button"
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        className="w-4 h-4 rounded-full flex items-center justify-center text-xs"
-        style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", verticalAlign: "middle" }}
-      >?</button>
-      {show && (
-        <div className="absolute z-50 bottom-6 left-0 w-52 p-2.5 rounded-xl text-xs leading-relaxed"
-          style={{ background: "var(--bg-card)", border: "1px solid rgba(16,185,129,0.2)", color: "var(--text-secondary)", whiteSpace: "normal" }}>
-          {tip}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const inputStyle = {
   background: "var(--bg-card)",
   border: "1px solid var(--border)",
@@ -141,7 +119,7 @@ export default function Register() {
             Welcome to UHCS! Check your email for your welcome message.
           </p>
           <p className="text-xs" style={{ color: "#64748b" }}>
-            Redirecting to login...
+            Redirecting to UHCS login ...
           </p>
         </div>
       </div>
@@ -234,7 +212,6 @@ export default function Register() {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "#94a3b8" }}>
                 {t("fullName")}
-                <SecureBadge tip="Use your real full name as it will appear on medical records." />
               </label>
               <input
                 type="text"
@@ -256,7 +233,6 @@ export default function Register() {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "var(--text-primary)" }}>
                 {t("emailAddress")}
-                <SecureBadge tip="Use a real email — your welcome message and records will be sent here." />
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
@@ -298,7 +274,6 @@ export default function Register() {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "#94a3b8" }}>
                 {t("phoneNumber")}
-                <SecureBadge tip="10-digit Indian mobile number starting with 6, 7, 8 or 9." />
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
@@ -331,7 +306,6 @@ export default function Register() {
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5"
                 style={{ color: "var(--text-primary)" }}>
                 {t("password")}
-                <SecureBadge tip="Use 8+ characters with uppercase, number, and symbol for best security." />
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
@@ -391,7 +365,6 @@ export default function Register() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
                 Date of Birth
-                <SecureBadge tip="Used to calculate your age on medical records. Required." />
               </label>
               <input
                 type="date"

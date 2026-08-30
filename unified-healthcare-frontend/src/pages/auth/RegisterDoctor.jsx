@@ -320,7 +320,6 @@ export default function RegisterDoctor() {
           {step === 1 && (
             <div className="space-y-4">
 
-              {/* GDPR / privacy notice */}
               <div className="p-3 rounded-xl flex items-start gap-2 mb-2"
                 style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
                 <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth={2} className="flex-shrink-0 mt-0.5">
@@ -335,7 +334,6 @@ export default function RegisterDoctor() {
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
                   Full Name
-                  <SecureBadge tip="Use your real name as it appears on your medical license." />
                 </label>
                 <input type="text" value={form.name}
                   onChange={(e) => set("name", e.target.value)}
@@ -354,7 +352,6 @@ export default function RegisterDoctor() {
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
                   {t("emailAddress")}
-                  <SecureBadge tip="Use a professional email. Admin approval notifications will be sent here." />
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none" style={{ color: "#64748b" }}>
@@ -382,7 +379,6 @@ export default function RegisterDoctor() {
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#94a3b8" }}>
                   Phone Number
-                  <SecureBadge tip="10-digit Indian mobile number. Must start with 6, 7, 8 or 9." />
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none"
