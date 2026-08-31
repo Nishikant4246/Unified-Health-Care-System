@@ -145,6 +145,8 @@ const translations = {
     homeFooterBlurb:
       "Digitising and centralising patient medical history across hospitals and clinics — for continuity of care, fewer duplicate tests, and better diagnosis, with role-based data security.",
     homeCopyright: "© 2026 Unified Health Care System · This is an academic project.",
+    legalTerms: "Terms of Service",
+    legalPrivacy: "Privacy Policy",
 
     // ══ LOGIN ═════════════════════════════════════════════════
     secureAccess: "Secure Access",
@@ -486,6 +488,8 @@ const translations = {
     homeFooterBlurb:
       "रुग्णालये व दवाखान्यांमधील रुग्णांचा वैद्यकीय इतिहास डिजिटल आणि केंद्रित करणे — उपचारांची सातत्यता, कमी वारंवार चाचण्या आणि चांगले निदान, भूमिका-आधारित डेटा सुरक्षेसह.",
     homeCopyright: "© 2026 युनिफाइड हेल्थ केअर सिस्टिम · हा एक शैक्षणिक प्रकल्प आहे.",
+    legalTerms: "सेवा अटी",
+    legalPrivacy: "गोपनीयता धोरण",
 
     // ══ LOGIN ═════════════════════════════════════════════════
     secureAccess: "सुरक्षित प्रवेश",

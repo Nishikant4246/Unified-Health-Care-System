@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Logo from "../components/common/Logo";
 import { AuthContext } from "../context/AuthContext";
@@ -522,6 +522,14 @@ export default function Home() {
             <p style={{ fontSize: 12, lineHeight: 1.55, color: "var(--text-secondary)", marginTop: 8 }}>
               {t("homeFooterBlurb")}
             </p>
+            <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: "6px 16px", fontSize: 12 }}>
+              <Link to="/terms" style={{ color: EMERALD, fontWeight: 600, textDecoration: "none" }}>
+                {t("legalTerms")}
+              </Link>
+              <Link to="/privacy" style={{ color: EMERALD, fontWeight: 600, textDecoration: "none" }}>
+                {t("legalPrivacy")}
+              </Link>
+            </div>
           </div>
           <div
             style={{

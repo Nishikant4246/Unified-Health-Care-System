@@ -454,6 +454,13 @@ export default function Register() {
                 </>
               ) : t("createAccount")}
             </button>
+
+            <p className="text-center text-xs mt-3" style={{ color: "var(--text-secondary)" }}>
+              By creating an account, you agree to our{" "}
+              <Link to="/terms" className="font-semibold" style={{ color: "#10b981" }}>Terms of Service</Link>
+              {" "}and{" "}
+              <Link to="/privacy" className="font-semibold" style={{ color: "#10b981" }}>Privacy Policy</Link>.
+            </p>
           </form>
 
           <p className="mt-8 text-center text-sm" style={{ color: "var(--text-secondary)" }}>

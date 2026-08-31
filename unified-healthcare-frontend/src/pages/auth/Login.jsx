@@ -840,6 +840,12 @@ export default function Login() {
             </motion.div>
           </motion.div>
 
+          <p className="text-center text-xs mt-6" style={{ color: "var(--text-secondary)" }}>
+            <Link to="/terms" className="font-semibold" style={{ color: "#10b981" }}>Terms of Service</Link>
+            <span className="mx-2">·</span>
+            <Link to="/privacy" className="font-semibold" style={{ color: "#10b981" }}>Privacy Policy</Link>
+          </p>
+
         </motion.div>
       </div>
     </div>

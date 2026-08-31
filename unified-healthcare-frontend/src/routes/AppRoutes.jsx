@@ -5,6 +5,7 @@ import Register from "../pages/auth/Register";
 import RegisterDoctor from "../pages/auth/RegisterDoctor";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import ResetPassword from "../pages/auth/ResetPassword";
+import Legal from "../pages/legal/Legal";
 import NotFound from "../pages/NotFound";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 
@@ -41,6 +42,8 @@ export default function AppRoutes() {
       <Route path="/register-doctor" element={<RegisterDoctor />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/terms" element={<Legal doc="terms" />} />
+      <Route path="/privacy" element={<Legal doc="privacy" />} />
 
       {/* Admin */}
       <Route path="/admin" element={<ProtectedRoute role="admin"><AdminLayout /></ProtectedRoute>}>

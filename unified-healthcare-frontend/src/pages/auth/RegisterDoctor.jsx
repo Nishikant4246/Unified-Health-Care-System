@@ -674,7 +674,10 @@ export default function RegisterDoctor() {
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
                   <p className="text-xs leading-relaxed" style={{ color: "#64748b" }}>
-                    By submitting, you consent to UHCS storing and processing your professional data for verification and healthcare management purposes.
+                    By submitting, you consent to UHCS storing and processing your professional data for verification and healthcare management purposes, and you agree to our{" "}
+                    <Link to="/terms" className="font-semibold" style={{ color: "#3b82f6" }}>Terms of Service</Link>
+                    {" "}and{" "}
+                    <Link to="/privacy" className="font-semibold" style={{ color: "#3b82f6" }}>Privacy Policy</Link>.
                   </p>
                 </div>
               </div>
