@@ -24,6 +24,7 @@ import AddRecord from "../pages/doctor/AddRecord";
 import MyRecords from "../pages/doctor/MyRecords";
 import MyPatients from "../pages/doctor/MyPatients";
 import PatientProfile from "../pages/doctor/PatientProfile";
+import DoctorLabReports from "../pages/doctor/LabReports";
 
 import PatientDashboard from "../pages/patient/Dashboard";
 import Timeline from "../pages/patient/Timeline";
@@ -31,6 +32,7 @@ import UploadReport from "../pages/patient/UploadReport";
 import Payments from "../pages/patient/Payments";
 import Profile from "../pages/patient/Profile";
 import FindDoctors from "../pages/patient/FindDoctors";
+import LabReports from "../pages/patient/LabReports";
 
 export default function AppRoutes() {
   return (
@@ -62,6 +64,7 @@ export default function AppRoutes() {
         <Route path="search-patient"      element={<SearchPatient />} />
         <Route path="add-record"          element={<AddRecord />} />
         <Route path="my-records"          element={<MyRecords />} />
+        <Route path="lab-reports"         element={<DoctorLabReports />} />
         <Route path="patients"            element={<MyPatients />} />
         <Route path="patients/:patientId" element={<PatientProfile />} />
         <Route path="*"                   element={<Navigate to="/doctor/dashboard" replace />} />
@@ -72,6 +75,7 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="/patient/dashboard" replace />} />
         <Route path="dashboard"     element={<PatientDashboard />} />
         <Route path="timeline"      element={<Timeline />} />
+        <Route path="lab-reports"   element={<LabReports />} />
         <Route path="upload-report" element={<UploadReport />} />
         <Route path="payments"      element={<Payments />} />
         <Route path="profile"       element={<Profile />} />

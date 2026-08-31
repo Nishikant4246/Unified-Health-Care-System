@@ -44,6 +44,7 @@ function StatCard({ title, value, icon, color, index, subtitle, liveText }) {
 const quickActions = [
   { labelKey: "searchPatient", path: "/doctor/search-patient", color: "#10b981" },
   { labelKey: "addRecord",     path: "/doctor/add-record",     color: "#3b82f6" },
+  { labelKey: "labReports",    path: "/doctor/lab-reports",    color: "#14b8a6" },
   { labelKey: "myPatients",    path: "/doctor/patients",       color: "#a855f7" },
   { labelKey: "myRecords",     path: "/doctor/my-records",     color: "#fbbf24" },
 ];
@@ -179,7 +180,7 @@ export default function DoctorDashboard() {
       {/* Quick Actions */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mb-8">
         <h2 className="text-lg font-semibold mb-4" style={{ color: "#f1f5f9" }}>{t('quickActions')}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}

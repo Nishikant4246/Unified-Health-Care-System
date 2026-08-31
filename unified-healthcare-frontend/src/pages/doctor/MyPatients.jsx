@@ -154,7 +154,7 @@ export default function MyPatients() {
                 {/* Avatar */}
                 <div
                   className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0"
-                  style={{ background: "#10b98118", color: "#10b981" }}
+                  style={{ background: "#10b98108", color: "#3b82f6" }}
                 >
                   {patient.name?.[0]?.toUpperCase()}
                 </div>

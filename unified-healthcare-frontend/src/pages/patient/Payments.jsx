@@ -68,7 +68,6 @@ export default function Payments() {
           className="text-center py-20 rounded-2xl"
           style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
-          <div className="text-5xl mb-4">💳</div>
           <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>No payments yet</p>
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Payment records appear after doctor visits</p>
         </motion.div>

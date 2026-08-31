@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Logo from "../../components/common/Logo";
 
 const EMERALD = "#10b981";
@@ -257,6 +257,13 @@ export default function Legal({ doc = "terms" }) {
   const isTerms = doc === "terms";
   const title = isTerms ? "Terms of Service" : "Privacy Policy";
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  // Go back to whatever page opened this (Login, Register, Home…);
+  // fall back to Home only when this page was loaded directly.
+  const goBack = () =>
+    location.key && location.key !== "default" ? navigate(-1) : navigate("/");
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)" }}>
       {/* top bar */}
@@ -274,12 +281,20 @@ export default function Legal({ doc = "terms" }) {
         <Link to="/" style={{ textDecoration: "none" }}>
           <Logo subtitle="Unified Health Care System" size={30} wordmarkSize={16} subtitleSize={10} />
         </Link>
-        <Link
-          to="/"
-          style={{ fontSize: 13, fontWeight: 700, color: EMERALD, textDecoration: "none" }}
+        <button
+          onClick={goBack}
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: EMERALD,
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
         >
-          ← Back to Home
-        </Link>
+          ← Back
+        </button>
       </header>
 
       {/* content */}
