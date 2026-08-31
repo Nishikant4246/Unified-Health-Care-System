@@ -300,7 +300,7 @@ export default function Legal({ doc = "terms" }) {
             marginBottom: 8,
           }}
         >
-          Legal
+          UHCS Legal
         </div>
         <h1 style={{ fontSize: "clamp(26px, 5vw, 38px)", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
           {title}
