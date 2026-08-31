@@ -141,7 +141,17 @@ const sendViaBrevo = async ({ to, subject, html, attachments }) => {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const err = new Error(data?.message || `Brevo HTTP ${res.status}`);
+    let hint = "";
+    if (res.status === 401) {
+      hint =
+        " — BREVO_API_KEY is not recognised. It must be an API key from " +
+        "Brevo → SMTP & API → 'API Keys' tab (starts 'xkeysib-'), NOT an SMTP key ('xsmtpsib-').";
+    } else if (res.status === 400 && /sender/i.test(data?.message || "")) {
+      hint =
+        " — the EMAIL_FROM address is not a verified sender. Add & verify it under " +
+        "Brevo → Senders, Domains & Dedicated IPs → Senders.";
+    }
+    const err = new Error(`Brevo HTTP ${res.status}: ${data?.message || "request failed"}${hint}`);
     err.code = `BREVO_${res.status}`;
     throw err;
   }
@@ -191,6 +201,17 @@ export const verifyEmailTransport = async () => {
 
   if (mode === "brevo") {
     console.log(`✅ Email transport ready (Brevo HTTP API · from: ${parseFrom().email})`);
+    if (env("BREVO_API_KEY").startsWith("xsmtpsib-")) {
+      console.warn(
+        "⚠️  BREVO_API_KEY looks like an SMTP key (xsmtpsib-…). The HTTP API needs an " +
+        "API key (xkeysib-…) from Brevo → SMTP & API → 'API Keys' tab. Sends will fail with 'Key not found'.",
+      );
+    } else if (!env("BREVO_API_KEY").startsWith("xkeysib-")) {
+      console.warn(
+        "⚠️  BREVO_API_KEY does not start with 'xkeysib-' — double-check it was copied in full " +
+        "from Brevo → SMTP & API → 'API Keys'.",
+      );
+    }
     if (!env("EMAIL_FROM")) {
       console.warn(
         "⚠️  EMAIL_FROM is not set — Brevo will reject sends unless the sender " +
