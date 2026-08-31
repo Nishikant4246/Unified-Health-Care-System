@@ -53,10 +53,10 @@ export default function PatientDashboard() {
   const hasHealthInfo = user?.dateOfBirth || user?.heightCm || user?.weightKg;
 
   const actions = [
-    { label: t('medicalTimeline'), desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "🏥" },
-    { label: t('uploadReport'),    desc: "Import past medical documents",      path: "/patient/upload-report", color: "#10b981", icon: "📎" },
-    { label: t('payments'),        desc: "View all medical bills",             path: "/patient/payments",      color: "#f59e0b", icon: "💳" },
-    { label: t('profile'),         desc: "Update your personal details",       path: "/patient/profile",       color: "#64748b", icon: "👤" },
+    { label: t('medicalTimeline'), desc: "Your complete health history",      path: "/patient/timeline",      color: "#a855f7", icon: "" },
+    { label: t('uploadReport'),    desc: "Import past medical documents",      path: "/patient/upload-report", color: "#10b981", icon: "" },
+    { label: t('payments'),        desc: "View all medical bills",             path: "/patient/payments",      color: "#f59e0b", icon: "" },
+    { label: t('profile'),         desc: "Update your personal details",       path: "/patient/profile",       color: "#64748b", icon: "" },
   ];
 
   return (
@@ -165,10 +165,7 @@ export default function PatientDashboard() {
         )}
       </motion.div>
 
-      {/* ══════════════════════════════════════════════════════
-          ── GOLDEN Find Nearby Doctors Card ──
-          Same golden theme as email templates
-          ══════════════════════════════════════════════════════ */}
+      {/* ── Find Nearby Doctors Card ── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
