@@ -5,7 +5,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import Logo from "../../components/common/Logo";
 import { calcAge, calcBMI, bmiCategory } from "../../utils/health";
 
-// ── Password strength ─────────────────────────────────────────
+// Password strength 
 function getPasswordStrength(pw) {
   if (!pw) return { score: 0, label: "", color: "" };
   let score = 0;
@@ -42,7 +42,7 @@ export default function Register() {
   const set   = (key, val) => setForm((p) => ({ ...p, [key]: val }));
   const touch = (key)      => setTouched((p) => ({ ...p, [key]: true }));
 
-  // ── Field validators ────────────────────────────────────────
+  // Field validators 
   const fieldError = (key) => {
     if (!touched[key]) return "";
     switch (key) {
@@ -99,7 +99,7 @@ export default function Register() {
     }
   };
 
-  // ── Success screen ──────────────────────────────────────────
+  //  Success screen 
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8"
@@ -129,7 +129,24 @@ export default function Register() {
   return (
       <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
-      {/* ── Left Panel ─────────────────────────────────────── */}
+      {/* Back btn*/}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        aria-label="Go back to previous page"
+        className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
+          color: "var(--text-secondary)",
+          boxShadow: "0 4px 12px rgba(15,23,42,0.12)",
+          cursor: "pointer",
+        }}
+      >
+        Back
+      </button>
+
+      {/* Left Panel  */}
       <div className="hidden lg:flex w-1/2 flex-col justify-between p-16 relative overflow-hidden"
               style={{ background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)" }}>
         <div className="absolute top-[-80px] left-[-80px] w-[400px] h-[400px] rounded-full opacity-10"
@@ -183,7 +200,7 @@ export default function Register() {
         </div>
       </div>
 
-      {/* ── Right Panel ────────────────────────────────────── */}
+      {/* Right Panel */}
       <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
         <div className="w-full max-w-md">
 

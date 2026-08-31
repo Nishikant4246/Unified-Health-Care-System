@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 import { useLanguage } from "../../context/LanguageContext";
 import Logo from "../../components/common/Logo";
@@ -20,7 +20,7 @@ const specializations = [
   "Endocrinologist", "Rheumatologist", "General Surgeon", "Anesthesiologist",
 ];
 
-// ── Password strength checker ────────────────────────────────
+//  Password strength checker 
 function getPasswordStrength(pw) {
   if (!pw) return { score: 0, label: "", color: "" };
   let score = 0;
@@ -38,7 +38,7 @@ function getPasswordStrength(pw) {
   return { score, ...map[score] };
 }
 
-// ── Security tip tooltip ─────────────────────────────────────
+//  Security tip tooltip 
 function SecureBadge({ tip }) {
   const [show, setShow] = useState(false);
   return (
@@ -66,6 +66,7 @@ function SecureBadge({ tip }) {
 
 export default function RegisterDoctor() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [step,      setStep]      = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [loading,   setLoading]   = useState(false);
@@ -97,7 +98,7 @@ export default function RegisterDoctor() {
   const removeEducation = (index) =>
     setForm((prev) => ({ ...prev, education: prev.education.filter((_, i) => i !== index) }));
 
-  // ── Field-level validators ──────────────────────────────────
+  //  Field-level validators 
   const fieldError = (key) => {
     if (!touched[key]) return "";
     switch (key) {
@@ -125,7 +126,7 @@ export default function RegisterDoctor() {
     }
   };
 
-  // ── Step validation ─────────────────────────────────────────
+  //  Step validation
   const validateStep = () => {
     setError("");
     if (step === 1) {
@@ -191,7 +192,7 @@ export default function RegisterDoctor() {
 
   const pwStrength = getPasswordStrength(form.password);
 
-  // ── Success Screen ──────────────────────────────────────────
+  //  Success Screen
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8" style={{ background: "var(--bg-primary)" }}>
@@ -228,7 +229,27 @@ export default function RegisterDoctor() {
   return (
     <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
 
-      {/* ── Left Panel ── */}
+      {/*  Back to previous page (top-left corner) */}
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        aria-label="Go back to previous page"
+        className="fixed top-4 left-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
+          color: "var(--text-secondary)",
+          boxShadow: "0 4px 12px rgba(15,23,42,0.12)",
+          cursor: "pointer",
+        }}
+      >
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        Back
+      </button>
+
+      {/* Left Panel */}
       <div className="hidden lg:flex w-2/5 flex-col justify-between p-16 relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)" }}>
         <div className="absolute top-[-80px] left-[-80px] w-[400px] h-[400px] rounded-full opacity-10"
@@ -316,7 +337,7 @@ export default function RegisterDoctor() {
             </div>
           )}
 
-          {/* ══ STEP 1 ══ */}
+          {/*  STEP 1 */}
           {step === 1 && (
             <div className="space-y-4">
 
@@ -478,7 +499,7 @@ export default function RegisterDoctor() {
             </div>
           )}
 
-          {/* ══ STEP 2 ══ */}
+          {/*  STEP 2 */}
           {step === 2 && (
             <div className="space-y-4">
               <div>
@@ -598,7 +619,7 @@ export default function RegisterDoctor() {
             </div>
           )}
 
-          {/* ══ STEP 3 ══ */}
+          {/* STEP 3 */}
           {step === 3 && (
             <div className="space-y-5">
               <div>
